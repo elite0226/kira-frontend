@@ -99,9 +99,10 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
 
     if (mounted) {
       setState(() {
-        if (statusService.nodeInfo.network.isNotEmpty) {
-          DateTime latestBlockTime = DateTime.tryParse(statusService.syncInfo.latestBlockTime);
-          isNetworkHealthy = DateTime.now().difference(latestBlockTime).inMinutes > 1 ? false : true;
+        if (statusService.nodeInfo != null && statusService.nodeInfo.network.isNotEmpty) {
+          isNetworkHealthy = statusService.isNetworkHealthy;
+          BlocProvider.of<NetworkBloc>(context)
+              .add(SetNetworkInfo(statusService.nodeInfo.network, statusService.rpcUrl));
         } else {
           isNetworkHealthy = false;
         }
@@ -381,7 +382,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
               onChanged: (value) {
                 setState(() {
                   withdrawalAmount = value * amountInterval;
-                  amountController.text = withdrawalAmount.toStringAsFixed(6);
+                  amountController.text = withdrawalAmount.toStringAsFixed(0);
                   amountError = "";
                 });
               }),
