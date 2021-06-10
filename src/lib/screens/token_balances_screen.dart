@@ -99,7 +99,6 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
 
   Future<bool> isUserLoggedIn() async {
     isLoggedIn = await getLoginStatus();
-
     return isLoggedIn;
   }
 

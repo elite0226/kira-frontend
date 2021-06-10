@@ -124,7 +124,6 @@ Future setInterxRPCUrl(String interxRpcUrl) async {
 }
 
 Future setTopBarStatus(bool display) async {
-
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('topBarStatus', display);
 }
@@ -135,7 +134,6 @@ Future<bool> getTopBarStatus() async {
 }
 
 Future setLoginStatus(bool isLoggedIn) async {
-
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('isLoggedIn', isLoggedIn);
 }
@@ -214,7 +212,8 @@ Future<List<BlockTransaction>> getTransactionsForHeight(int height) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   var txStrings = prefs.getString('tx_for_block_$height');
   try {
-    return jsonDecode(txStrings) as List<BlockTransaction>;
+    return (jsonDecode(txStrings) as List<dynamic>).map((e) =>
+        BlockTransaction.fromJson(jsonDecode(e.toString()) as Map<String, dynamic>)).toList();
   } catch (_) {
     return List.empty();
   }

@@ -104,6 +104,13 @@ class _WithdrawalTransactionsTableState extends State<WithdrawalTransactionsTabl
                 numeric: false,
                 tooltip: "Recipient Address",
               ),
+              DataColumn(
+                label: Flexible(
+                  child: Text("Memo", style: TextStyle(color: KiraColors.kGrayColor, fontSize: 14)),
+                ),
+                numeric: false,
+                tooltip: "Memo",
+              ),
             ],
             rows: widget.transactions
                 .asMap()
@@ -172,6 +179,15 @@ class _WithdrawalTransactionsTableState extends State<WithdrawalTransactionsTabl
                                   softWrap: true,
                                   style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 14)),
                         )),
+                        DataCell(
+                          InkWell(
+                            onTap: () {
+                              copyText("");
+                              showToast(Strings.memoTextCopied);
+                            },
+                            child: Text(entry.value.memo, style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 14)),
+                          ),
+                        ),
                       ]);
                 })
                 .toSet()

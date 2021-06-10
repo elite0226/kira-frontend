@@ -12,7 +12,6 @@ import 'package:kira_auth/blocs/export.dart';
 import 'package:kira_auth/models/export.dart';
 
 class NetworkScreen extends StatefulWidget {
-
   @override
   _NetworkScreenState createState() => _NetworkScreenState();
 }
@@ -35,27 +34,11 @@ class _NetworkScreenState extends State<NetworkScreen> {
 
   bool isLoggedIn = false;
 
-  Future<bool> isUserLoggedIn() async {
-    isLoggedIn = await getLoginStatus();
-    return isLoggedIn;
-  }
-
   @override
   void initState() {
     super.initState();
 
-    setTopBarStatus(true);
-
-    isUserLoggedIn().then((isLoggedIn) {
-      if (isLoggedIn){
-        checkPasswordExpired().then((success) {
-          if (success) {
-            Navigator.pushReplacementNamed(context, '/login');
-          }
-        });
-      }
-    });
-
+    // setTopBarStatus(true);
     getNodeStatus();
     getValidators(false);
   }
@@ -82,22 +65,15 @@ class _NetworkScreenState extends State<NetworkScreen> {
         var uri = Uri.dataFromString(html.window.location.href);
         Map<String, String> params = uri.queryParameters;
 
-        if (params.containsKey("info")) {
-          var searchInfo = params['info'];
+        filteredValidators.clear();
+        var keyword = query;
+        if (params.containsKey("info"))
+          keyword = params['info'].toLowerCase();
 
-          filteredValidators = validators
-              .where((x) =>
-          x.moniker.toLowerCase().contains(searchInfo.toLowerCase()) ||
-              x.address.toLowerCase().contains(searchInfo.toLowerCase()))
-              .toList();
-        } else {
-          filteredValidators.clear();
-          filteredValidators.addAll(
-              query.isEmpty ? validators : validators.where((x) =>
-              x.moniker.toLowerCase().contains(query) ||
-                  x.address.toLowerCase().contains(query)));
-          validatorController.add(null);
-        }
+        filteredValidators.addAll(keyword.isEmpty ? validators : validators.where((x) =>
+        x.moniker.toLowerCase().contains(keyword) ||
+            x.address.toLowerCase().contains(keyword)));
+        validatorController.add(null);
       });
     }
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +14,6 @@ import 'package:kira_auth/blocs/export.dart';
 import 'package:kira_auth/models/export.dart';
 
 class BlocksScreen extends StatefulWidget {
-
   @override
   _BlocksScreenState createState() => _BlocksScreenState();
 }
@@ -38,35 +38,17 @@ class _BlocksScreenState extends State<BlocksScreen> {
   int page = 1;
   StreamController blockController = StreamController.broadcast();
 
-  Future<bool> isUserLoggedIn() async {
-    bool isLoggedIn = await getLoginStatus();
-    return isLoggedIn;
-  }
-
   @override
   void initState() {
     super.initState();
 
+    // setTopBarStatus(true);
     getNodeStatus();
     getBlocks(false);
+
     timer = Timer.periodic(Duration(seconds: 15), (timer) {
       getBlocks(true);
     });
-
-    setTopBarStatus(true);
-
-    isUserLoggedIn().then((isLoggedIn) {
-
-      if (isLoggedIn){
-        checkPasswordExpired().then((success) {
-          if (success) {
-            Navigator.pushReplacementNamed(context, '/login');
-          }
-        });
-      }
-    });
-
-    getNodeStatus();
   }
 
   void getNodeStatus() async {
@@ -595,10 +577,10 @@ class _BlocksScreenState extends State<BlocksScreen> {
   Widget addTransactionHeader() {
     return Container(
         padding: EdgeInsets.only(bottom: 10),
-        margin: EdgeInsets.only(left: ResponsiveWidget.isSmallScreen(context) ? 50 : 100, right: 20),
+        margin: EdgeInsets.only(left: ResponsiveWidget.isSmallScreen(context) ? 20 : 30, right: 20),
         child: Row(children: [
           Expanded(
-              flex: 1,
+              flex: 2,
               child: Text("Tx Hash",
                   style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold))),
           SizedBox(width: 10),
@@ -632,23 +614,22 @@ class _BlocksScreenState extends State<BlocksScreen> {
         color: KiraColors.green2.withOpacity(0.2),
         child: Container(
             padding: EdgeInsets.all(10),
-            margin: EdgeInsets.only(left: ResponsiveWidget.isSmallScreen(context) ? 20 : 100),
+            margin: EdgeInsets.only(left: ResponsiveWidget.isSmallScreen(context) ? 20 : 30),
             child: Row(children: [
+              InkWell(
+                onTap: () {
+                  copyText(transaction.getHash);
+                  showToast(Strings.txHashCopied);
+                },
+                child: Icon(Icons.copy, size: 20, color: KiraColors.kPrimaryColor),
+              ),
+              SizedBox(width: 10),
               Expanded(
-                  flex: 1,
-                  child: Row(children: [
-                    InkWell(
-                      onTap: () {
-                        copyText(transaction.getHash);
-                        showToast(Strings.txHashCopied);
-                      },
-                      child: Icon(Icons.copy, size: 20, color: KiraColors.kPrimaryColor),
-                    ),
-                    SizedBox(width: 10),
-                    Text(transaction.getReducedHash,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 16))
-                  ])
+                  flex: 2,
+                  child: Text(transaction.getReducedHash,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 16))
+
               ),
               SizedBox(width: 10),
               Expanded(

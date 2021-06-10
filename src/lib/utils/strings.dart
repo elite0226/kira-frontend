@@ -124,6 +124,7 @@ class Strings {
   static const String publicAddressCopied = "Public address copied";
   static const String mnemonicWordsCopied = "Mnemonic words copied";
   static const String recipientAddressCopied = "Recipient address copied";
+  static const String memoTextCopied = "Memo copied";
   static const String noAvailableNetworks = "No network";
   static const String networkDescription = "Please select one of the available networks";
   static const String removeAccountDescription = "Please select the account and remove it";

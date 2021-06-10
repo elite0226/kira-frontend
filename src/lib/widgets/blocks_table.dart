@@ -219,14 +219,14 @@ class _BlocksTableState extends State<BlocksTable> {
         child: Text("No transactions in this block",
             style: TextStyle(color: KiraColors.white, fontSize: 16, fontWeight: FontWeight.bold)))
         : Container(
-        margin: EdgeInsets.only(left: ResponsiveWidget.isSmallScreen(context) ? 30 : 100),
+        margin: EdgeInsets.only(left: ResponsiveWidget.isSmallScreen(context) ? 20 : 30),
         padding: EdgeInsets.all(10),
         child: Column(children: [
           Container(
               margin: EdgeInsets.only(bottom: 20),
               child: Row(children: [
                 Expanded(
-                    flex: 1,
+                    flex: 2,
                     child: Text("Tx Hash",
                         style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold))),
                 SizedBox(width: 10),
@@ -256,7 +256,7 @@ class _BlocksTableState extends State<BlocksTable> {
           ...widget.transactions
               .map((transaction) => Row(children: [
             Expanded(
-                flex: 1,
+                flex: 2,
                 child: Align(
                     alignment: Alignment.centerLeft,
                     child: InkWell(
@@ -266,6 +266,7 @@ class _BlocksTableState extends State<BlocksTable> {
                         },
                         child: Text(transaction.getReducedHash,
                             overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                             style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 16))))),
             SizedBox(width: 10),
             Expanded(

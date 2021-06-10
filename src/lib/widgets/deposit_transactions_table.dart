@@ -106,6 +106,13 @@ class _DepositTransactionsTableState extends State<DepositTransactionsTable> {
                 numeric: false,
                 tooltip: "Sender Address",
               ),
+              DataColumn(
+                label: Flexible(
+                  child: Text("Memo", style: TextStyle(color: KiraColors.kGrayColor, fontSize: 14)),
+                ),
+                numeric: false,
+                tooltip: "Memo",
+              ),
             ],
             rows: widget.transactions
                 .asMap()
@@ -167,6 +174,15 @@ class _DepositTransactionsTableState extends State<DepositTransactionsTable> {
                               showToast(Strings.senderAddressCopied);
                             },
                             child: Text(token.sender.replaceRange(10, token.sender.length - 7, '...'), softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 14)),
+                          ),
+                        ),
+                        DataCell(
+                          InkWell(
+                            onTap: () {
+                              copyText("");
+                              showToast(Strings.memoTextCopied);
+                            },
+                            child: Text(entry.value.memo, style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 14)),
                           ),
                         ),
                       ]);

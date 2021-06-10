@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -31,7 +33,6 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
   String query = "";
   bool moreLoading = false;
 
-
   Account currentAccount;
   String feeAmount;
   Token feeToken;
@@ -44,6 +45,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
   void initState() {
     super.initState();
 
+    // setTopBarStatus(true);
     getNodeStatus();
     if (mounted) {
       if (BlocProvider.of<AccountBloc>(context).state.currentAccount != null) {
@@ -70,9 +72,17 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
       moreLoading = false;
       proposals.clear();
       proposals.addAll(proposalService.proposals);
+
+      var uri = Uri.dataFromString(html.window.location.href);
+      Map<String, String> params = uri.queryParameters;
+      var keyword = query;
+      if (params.containsKey("info"))
+        keyword = params['info'].toLowerCase();
+
       filteredProposals.clear();
-      filteredProposals.addAll(query.isEmpty ? proposals : proposals.where((x) => x.proposalId.contains(query) ||
-          x.content.getName().toLowerCase().contains(query) || x.getStatusString().toLowerCase().contains(query)));
+      filteredProposals.addAll(keyword.isEmpty ? proposals : proposals.where((x) =>
+      x.proposalId.contains(keyword) || x.content.getName().toLowerCase().contains(keyword) ||
+          x.getStatusString().toLowerCase().contains(keyword)));
       proposalController.add(null);
     });
   }
@@ -118,12 +128,6 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    checkPasswordExpired().then((success) {
-      if (success) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    });
-
     return Scaffold(
         body: BlocConsumer<AccountBloc, AccountState>(
             listener: (context, state) {},

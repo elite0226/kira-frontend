@@ -230,7 +230,8 @@ class NetworkService {
       }
 
       this.transactions = transactionList;
-      storeModels(ModelType.TRANSACTION, height.toString(), jsonEncode(transactionList));
+      storeModels(ModelType.TRANSACTION, height.toString(),
+          jsonEncode(transactionList.map((e) => e.jsonString).toList()));
     }
   }
 }
