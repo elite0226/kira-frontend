@@ -38,11 +38,39 @@ class _BlocksScreenState extends State<BlocksScreen> {
   int page = 1;
   StreamController blockController = StreamController.broadcast();
 
+  List<String> networkIds = [Strings.customNetwork];
+  String networkId = Strings.customNetwork;
+  String testedRpcUrl = "";
+  String customInterxRPCUrl = "";
+
   @override
   void initState() {
     super.initState();
 
-    // setTopBarStatus(true);
+    setTopbarIndex(3);
+    setTopBarStatus(true);
+
+    var uri = Uri.dataFromString(html.window.location.href); //converts string to a uri
+    Map<String, String> params = uri.queryParameters; // query parameters automatically populated
+
+    if(params.containsKey("rpc")) {
+      customInterxRPCUrl = params['rpc'];
+      setState(() {
+        isNetworkHealthy = false;
+      });
+      setInterxRPCUrl(customInterxRPCUrl);
+    } else {
+      getLoginStatus().then((isLoggedIn) {
+        if(isLoggedIn) {
+          checkPasswordExpired().then((success) {
+            if (success) {
+              Navigator.pushReplacementNamed(context, '/login');
+            }
+          });
+        }
+      });
+    }
+
     getNodeStatus();
     getBlocks(false);
 
@@ -56,12 +84,26 @@ class _BlocksScreenState extends State<BlocksScreen> {
       await statusService.getNodeStatus();
 
       setState(() {
+        String testedRpcUrl = statusService.rpcUrl;
         if (statusService.nodeInfo != null &&
             statusService.nodeInfo.network.isNotEmpty) {
           isNetworkHealthy = statusService.isNetworkHealthy;
-          BlocProvider.of<NetworkBloc>(context)
-              .add(SetNetworkInfo(
-              statusService.nodeInfo.network, statusService.rpcUrl));
+
+          if (this.customInterxRPCUrl != "") {
+            setState(() {
+              if (!networkIds.contains(statusService.nodeInfo.network)) {
+                networkIds.add(statusService.nodeInfo.network);
+              }
+              networkId = statusService.nodeInfo.network;
+              isNetworkHealthy = statusService.isNetworkHealthy;
+            });
+            BlocProvider.of<NetworkBloc>(context).add(SetNetworkInfo(networkId, testedRpcUrl));
+            this.customInterxRPCUrl = "";
+          } else {
+            BlocProvider.of<NetworkBloc>(context)
+                .add(SetNetworkInfo(
+                statusService.nodeInfo.network, statusService.rpcUrl));
+          }
 
           var uri = Uri.dataFromString(html.window.location.href); //converts string to a uri
           Map<String, String> params = uri.queryParameters; // query parameters automatically populated

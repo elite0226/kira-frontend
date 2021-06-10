@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:kira_auth/models/block_transaction.dart';
+import 'package:kira_auth/models/export.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String TS_PREFIX = 'spc_ts_';
@@ -151,6 +151,36 @@ Future setLastFetchedTime(String key) async {
 
 String getTimestampKey(String forKey) {
   return TS_PREFIX + forKey;
+}
+
+Future setTopbarIndex(int index) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setInt('topBarIndex', index);
+}
+
+Future<int> getTopbarIndex() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getInt('topBarIndex') ?? 0;
+}
+
+Future setLastSearchedAccount(String account) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('lastSearchedAccount', account);
+}
+
+Future<String> getLastSearchedAccount() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('lastSearchedAccount') ?? "";
+}
+
+Future setTabIndex(int tabIndex) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setInt('tabIndex', tabIndex);
+}
+
+Future<int> getTabIndex() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getInt('tabIndex') ?? 0;
 }
 
 Future<bool> checkPasswordExpired() async {

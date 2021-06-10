@@ -296,4 +296,5 @@ class Strings {
   static const String grayLogoImage = "assets/images/kira_logo_gray.png";
   static const String backgroundImage = "assets/images/background.png";
   static const String keyImage = 'assets/images/key.png';
+  static const String copyImage = 'assets/images/copy.png';
 }
