@@ -163,7 +163,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
                 refreshExpandStatus(newExpandTop: newExpandTop);
               },
               child: Container(
-                padding: EdgeInsets.only(top: 10, bottom: 10),
+                padding: EdgeInsets.only(top: 20, bottom: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [

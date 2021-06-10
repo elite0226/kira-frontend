@@ -12,6 +12,8 @@ import 'package:convert/convert.dart';
 import 'package:kira_auth/config.dart';
 import 'dart:async';
 
+import 'package:qr_flutter/qr_flutter.dart';
+
 class TokenBalanceScreen extends StatefulWidget {
   @override
   _TokenBalanceScreenState createState() => _TokenBalanceScreenState();
@@ -412,6 +414,33 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
             }));
   }
 
+  Widget qrCode() {
+    return Container(
+      width: 180,
+      height: 180,
+      margin: EdgeInsets.symmetric(vertical: 0, horizontal: 30),
+      padding: EdgeInsets.all(0),
+      decoration: new BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: new Border.all(
+          color: KiraColors.kPurpleColor,
+          width: 3,
+        ),
+      ),
+      // dropdown below..
+      child: QrImage(
+        data: currentAccount != null ? currentAccount.bech32Address : '',
+        embeddedImage: AssetImage(Strings.logoQRImage),
+        embeddedImageStyle: QrEmbeddedImageStyle(
+          size: Size(60, 60),
+        ),
+        version: QrVersions.auto,
+        size: 300,
+      ),
+    );
+  }
+
   Widget addSearchInput() {
     return Container(
       width: 500,
@@ -713,6 +742,11 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Align(
+              alignment: Alignment.center,
+              child: qrCode(),
+            ),
+            SizedBox(height: 30),
             Text(
               Strings.depositTransactions,
               textAlign: TextAlign.start,

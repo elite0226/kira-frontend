@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:kira_auth/models/export.dart';
 import 'package:kira_auth/utils/export.dart';
 
+import 'custom_dialog.dart';
+
 class WithdrawalTransactionsTable extends StatefulWidget {
   final List<Transaction> transactions;
   WithdrawalTransactionsTable({
@@ -104,13 +106,6 @@ class _WithdrawalTransactionsTableState extends State<WithdrawalTransactionsTabl
                 numeric: false,
                 tooltip: "Recipient Address",
               ),
-              DataColumn(
-                label: Flexible(
-                  child: Text("Memo", style: TextStyle(color: KiraColors.kGrayColor, fontSize: 14)),
-                ),
-                numeric: false,
-                tooltip: "Memo",
-              ),
             ],
             rows: widget.transactions
                 .asMap()
@@ -120,6 +115,26 @@ class _WithdrawalTransactionsTableState extends State<WithdrawalTransactionsTabl
                   var token = entry.value;
                   String tokenHash = token.hash.toLowerCase();
                   return DataRow(
+                      onSelectChanged: (bool selected) {
+                        if (selected) {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return CustomDialog(
+                                contentWidgets: [
+                                  Text(Strings.kiraNetwork,
+                                    style: TextStyle(fontSize: 22, color: KiraColors.kPurpleColor, fontWeight: FontWeight.w600),
+                                  ),
+                                  SizedBox(height: 15),
+                                  Text(token.memo,
+                                      style: TextStyle(fontSize: 18), textAlign: TextAlign.center),
+                                  SizedBox(height: 22),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                      },
                       color: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
                         // All rows will have the same selected color.
                         if (states.contains(MaterialState.selected)) return KiraColors.kYellowColor1.withOpacity(0.3);
@@ -179,15 +194,6 @@ class _WithdrawalTransactionsTableState extends State<WithdrawalTransactionsTabl
                                   softWrap: true,
                                   style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 14)),
                         )),
-                        DataCell(
-                          InkWell(
-                            onTap: () {
-                              copyText("");
-                              showToast(Strings.memoTextCopied);
-                            },
-                            child: Text(entry.value.memo, style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 14)),
-                          ),
-                        ),
                       ]);
                 })
                 .toSet()
