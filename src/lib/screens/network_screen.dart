@@ -20,17 +20,17 @@ class NetworkScreen extends StatefulWidget {
 class _NetworkScreenState extends State<NetworkScreen> {
   NetworkService networkService = NetworkService();
   StatusService statusService = StatusService();
-  Timer timer;
   List<Validator> validators = [];
   List<Validator> filteredValidators = [];
   String query = "";
-  bool initialFetched = false;
+  bool moreLoading = false;
 
   List<String> favoriteValidators = [];
   int expandedTop = -1;
   int sortIndex = 0;
   bool isAscending = true;
   bool isNetworkHealthy = false;
+  int page = 1;
   StreamController validatorController = StreamController.broadcast();
 
   bool isLoggedIn = false;
@@ -38,9 +38,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
   Future<bool> isUserLoggedIn() async {
     isLoggedIn = await getLoginStatus();
     return isLoggedIn;
-
   }
-
 
   @override
   void initState() {
@@ -49,7 +47,6 @@ class _NetworkScreenState extends State<NetworkScreen> {
     setTopBarStatus(true);
 
     isUserLoggedIn().then((isLoggedIn) {
-
       if (isLoggedIn){
         checkPasswordExpired().then((success) {
           if (success) {
@@ -60,20 +57,17 @@ class _NetworkScreenState extends State<NetworkScreen> {
     });
 
     getNodeStatus();
-
     getValidators(false);
-    timer = Timer.periodic(Duration(seconds: 10), (timer) {
-      getValidators(true);
-    });
   }
 
   void getValidators(bool loadNew) async {
+    setState(() {
+      moreLoading = !loadNew;
+    });
     await networkService.getValidators(loadNew);
-    if (networkService.totalCount > networkService.validators.length)
-      getValidators(false);
     if (mounted) {
       setState(() {
-        initialFetched = true;
+        moreLoading = false;
         favoriteValidators = BlocProvider
             .of<ValidatorBloc>(context)
             .state
@@ -145,7 +139,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
                           children: <Widget>[
                             addHeader(),
                             addTableHeader(),
-                            !initialFetched ? addLoadingIndicator() : filteredValidators.isEmpty ? Container(
+                            moreLoading ? addLoadingIndicator() : filteredValidators.isEmpty ? Container(
                                 margin: EdgeInsets.only(top: 20, left: 20),
                                 child: Text("No validators to show",
                                     style: TextStyle(
@@ -394,7 +388,14 @@ class _NetworkScreenState extends State<NetworkScreen> {
           children: [
             ValidatorsTable(
               isFiltering: query.isNotEmpty,
+              page: page,
+              setPage: (newPage) => {
+                this.setState(() {
+                  page = newPage;
+                })
+              },
               totalPages: (networkService.totalCount / 5).ceil(),
+              loadMore: () => getValidators(false),
               totalValidators: validators,
               validators: filteredValidators,
               expandedTop: expandedTop,

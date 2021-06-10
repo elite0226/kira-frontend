@@ -13,7 +13,10 @@ class BlocksTable extends StatefulWidget {
   final List<BlockTransaction> transactions;
   final int expandedHeight;
   final Function onTapRow;
+  final int page;
   final int totalPages;
+  final Function loadMore;
+  final Function setPage;
   final StreamController controller;
 
   BlocksTable({
@@ -24,6 +27,9 @@ class BlocksTable extends StatefulWidget {
     this.expandedHeight,
     this.onTapRow,
     this.controller,
+    this.loadMore,
+    this.page,
+    this.setPage,
   }) : super();
 
   @override
@@ -32,7 +38,6 @@ class BlocksTable extends StatefulWidget {
 
 class _BlocksTableState extends State<BlocksTable> {
   List<ExpandableController> controllers = List.filled(5, null);
-  int page = 1;
   int startAt;
   int endAt;
   int pageCount = 5;
@@ -48,12 +53,18 @@ class _BlocksTableState extends State<BlocksTable> {
 
   setPage({int newPage = 0}) {
     if (!mounted) return;
+    if (newPage > 0)
+      widget.setPage(newPage);
+    var page = newPage == 0 ? widget.page : newPage;
     this.setState(() {
-      page = newPage == 0 ? page : newPage;
       startAt = page * 5 - 5;
       endAt = startAt + pageCount;
 
-      currentBlocks = widget.blocks.sublist(startAt, min(endAt, widget.blocks.length));
+      currentBlocks = [];
+      if (widget.blocks.length > startAt)
+        currentBlocks = widget.blocks.sublist(startAt, min(endAt, widget.blocks.length));
+      if (currentBlocks.length < 5 && (widget.blocks.length / 5).ceil() < widget.totalPages)
+        widget.loadMore();
     });
     if (newPage > 0)
       refreshExpandStatus();
@@ -104,20 +115,20 @@ class _BlocksTableState extends State<BlocksTable> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         IconButton(
-          onPressed: page > 1 ? () => setPage(newPage: page - 1) : null,
+          onPressed: widget.page > 1 ? () => setPage(newPage: widget.page - 1) : null,
           icon: Icon(
             Icons.arrow_back_ios,
             size: 20,
-            color: page > 1 ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2),
+            color: widget.page > 1 ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2),
           ),
         ),
-        Text("$page / ${widget.totalPages}", style: TextStyle(fontSize: 16, color: KiraColors.white, fontWeight: FontWeight.bold)),
+        Text("${widget.page} / ${widget.totalPages}", style: TextStyle(fontSize: 16, color: KiraColors.white, fontWeight: FontWeight.bold)),
         IconButton(
-          onPressed: page < widget.totalPages ? () => setPage(newPage: page + 1) : null,
+          onPressed: widget.page < widget.totalPages ? () => setPage(newPage: widget.page + 1) : null,
           icon: Icon(
               Icons.arrow_forward_ios,
               size: 20,
-              color: page < widget.totalPages ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2)
+              color: widget.page < widget.totalPages ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2)
           ),
         ),
       ],

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:kira_auth/models/export.dart';
+import 'package:kira_auth/models/block_transaction.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String TS_PREFIX = 'spc_ts_';
@@ -176,14 +176,38 @@ Future<bool> checkPasswordExpired() async {
   return false;
 }
 
-Future<bool> checkTransactionsExists(int height) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.containsKey('tx_for_block_$height');
+enum ModelType { BLOCK, TRANSACTION, PROPOSAL }
+
+// ignore: missing_return
+String getKeyFromType(ModelType type) {
+  switch (type) {
+    case ModelType.BLOCK:
+      return 'block';
+    case ModelType.TRANSACTION:
+      return 'tx_for_block';
+    case ModelType.PROPOSAL:
+      return 'proposal';
+  }
 }
 
-Future storeTransactions(int height, List<BlockTransaction> transactions) async {
+Future<bool> checkModelExists(ModelType type, String id) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString('tx_for_block_$height', jsonEncode(transactions));
+  return prefs.containsKey('${getKeyFromType(type)}_$id');
+}
+
+Future storeModels(ModelType type, String id, String data) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('${getKeyFromType(type)}_$id', data);
+}
+
+Future<Map> getModel(ModelType type, String id) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var dataStr = prefs.getString('${getKeyFromType(type)}_$id');
+  try {
+    return jsonDecode(dataStr) as Map<String, dynamic>;
+  } catch (_) {
+    return null;
+  }
 }
 
 Future<List<BlockTransaction>> getTransactionsForHeight(int height) async {

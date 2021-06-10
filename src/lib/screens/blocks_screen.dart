@@ -29,18 +29,18 @@ class _BlocksScreenState extends State<BlocksScreen> {
   List<BlockTransaction> filteredTransactions = [];
   Timer timer;
   String query = "";
-  bool initialFetched = false;
+  bool moreLoading = false;
 
   bool isNetworkHealthy = false;
   bool searchSubmitted = false;
   bool isFiltering = false;
   int expandedHeight = -1;
+  int page = 1;
   StreamController blockController = StreamController.broadcast();
 
   Future<bool> isUserLoggedIn() async {
     bool isLoggedIn = await getLoginStatus();
     return isLoggedIn;
-
   }
 
   @override
@@ -49,7 +49,7 @@ class _BlocksScreenState extends State<BlocksScreen> {
 
     getNodeStatus();
     getBlocks(false);
-    timer = Timer.periodic(Duration(seconds: 10), (timer) {
+    timer = Timer.periodic(Duration(seconds: 15), (timer) {
       getBlocks(true);
     });
 
@@ -67,20 +67,10 @@ class _BlocksScreenState extends State<BlocksScreen> {
     });
 
     getNodeStatus();
-
-  }
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
   }
 
   void getNodeStatus() async {
-
-
     if (mounted) {
-
       await statusService.getNodeStatus();
 
       setState(() {
@@ -90,7 +80,6 @@ class _BlocksScreenState extends State<BlocksScreen> {
           BlocProvider.of<NetworkBloc>(context)
               .add(SetNetworkInfo(
               statusService.nodeInfo.network, statusService.rpcUrl));
-
 
           var uri = Uri.dataFromString(html.window.location.href); //converts string to a uri
           Map<String, String> params = uri.queryParameters; // query parameters automatically populated
@@ -108,11 +97,12 @@ class _BlocksScreenState extends State<BlocksScreen> {
   }
 
   void getBlocks(bool loadNew) async {
-    await networkService.getBlocks(loadNew);
-    if (networkService.latestBlockHeight > networkService.blocks.length)
-      getBlocks(false);
     setState(() {
-      initialFetched = true;
+      moreLoading = !loadNew;
+    });
+    await networkService.getBlocks(loadNew);
+    setState(() {
+      moreLoading = false;
       blocks.clear();
       blocks.addAll(networkService.blocks);
       blockController.add(null);
@@ -153,7 +143,7 @@ class _BlocksScreenState extends State<BlocksScreen> {
                                 : filteredBlock != null
                                 ? addBlockInfo()
                                 : addTransactionInfo()
-                                : !initialFetched ? addLoadingIndicator() : blocks.isEmpty
+                                : moreLoading ? addLoadingIndicator() : blocks.isEmpty
                                 ? Container(
                                 margin: EdgeInsets.only(top: 20, left: 20),
                                 child: Text("No blocks to show",
@@ -386,8 +376,6 @@ class _BlocksScreenState extends State<BlocksScreen> {
   }
 
   void onSearchPressed() {
-
-    print(query);
     if (query.trim().isEmpty) {
       AlertDialog alert =
       AlertDialog(title: Text(Strings.kiraNetwork), content: Text(Strings.noKeywordInput));
@@ -426,7 +414,14 @@ class _BlocksScreenState extends State<BlocksScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             BlocksTable(
+              page: page,
+              setPage: (newPage) => {
+                this.setState(() {
+                  page = newPage;
+                })
+              },
               totalPages: (networkService.latestBlockHeight / 5).ceil(),
+              loadMore: () => getBlocks(false),
               blocks: blocks,
               expandedHeight: expandedHeight,
               transactions: transactions,

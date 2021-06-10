@@ -25,18 +25,19 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
   List<Proposal> proposals = [];
   List<Proposal> filteredProposals = [];
   List<int> voteable = [0, 2];
-  Timer timer;
   String pendingTxHash;
   String cancelAccountNumber;
   String cancelSequence;
   String query = "";
-  bool initialFetched = false;
+  bool moreLoading = false;
+
 
   Account currentAccount;
   String feeAmount;
   Token feeToken;
   String expandedId;
   bool isNetworkHealthy = false;
+  int page = 1;
   StreamController proposalController = StreamController.broadcast();
 
   @override
@@ -58,23 +59,15 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     }
 
     getProposals(false);
-    timer = Timer.periodic(Duration(seconds: 10), (timer) {
-      getProposals(true);
-    });
-  }
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
   }
 
   void getProposals(bool loadNew) async {
-    await proposalService.getProposals(loadNew, account: currentAccount != null ? currentAccount.bech32Address : '');
-    if (proposalService.totalCount > proposalService.proposals.length)
-      getProposals(false);
     setState(() {
-      initialFetched = true;
+      moreLoading = !loadNew;
+    });
+    await proposalService.getProposals(loadNew, account: currentAccount != null ? currentAccount.bech32Address : '');
+    setState(() {
+      moreLoading = false;
       proposals.clear();
       proposals.addAll(proposalService.proposals);
       filteredProposals.clear();
@@ -148,7 +141,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                           children: <Widget>[
                             addHeader(),
                             addTableHeader(),
-                            !initialFetched ? addLoadingIndicator() : filteredProposals.isEmpty ? Container(
+                            moreLoading ? addLoadingIndicator() : filteredProposals.isEmpty ? Container(
                                 margin: EdgeInsets.only(top: 20, left: 20),
                                 child: Text("No proposals to show",
                                     style: TextStyle(
@@ -281,6 +274,12 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ProposalsTable(
+              page: page,
+              setPage: (newPage) => {
+                this.setState(() {
+                  page = newPage;
+                })
+              },
               isFiltering: query.isNotEmpty,
               proposals: filteredProposals,
               voteable: voteable,
@@ -289,6 +288,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                 expandedId = id;
               }),
               totalPages: (proposalService.totalCount / 5).ceil(),
+              loadMore: () => getProposals(false),
               controller: proposalController,
               onTapVote: (proposalId, option) => sendProposal(proposalId, option),
             ),
