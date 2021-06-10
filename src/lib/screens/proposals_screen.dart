@@ -349,7 +349,6 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
       result = await TransactionSender.broadcastStdTx(account: currentAccount, stdTx: signedStdTx);
     } catch (error) {
     }
-    print("Cancelled transaction - $result");
     cancelAccountNumber = '';
     cancelSequence = '';
   }
@@ -376,7 +375,6 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
       result = error.toString();
     }
     Navigator.of(context, rootNavigator: true).pop();
-    print("Sent transaction - $result");
 
     String voteResult, txHash;
     if (result == null) {

@@ -56,8 +56,6 @@ class TransactionService {
     StatusService service = StatusService();
 
     await service.getNodeStatus();
-    // String interxPubKey = service.interxPubKey;
-    // String interxPublicKey = HEX.encode(base64Decode(interxPubKey));
 
     var apiUrl = await loadInterxURL();
 
@@ -133,13 +131,15 @@ class TransactionService {
       transaction.status = "success";
       var time = new DateTime.fromMillisecondsSinceEpoch(body[hash]['time'] * 1000);
       transaction.timestamp = DateFormat('yyyy/MM/dd, hh:mm').format(time);
-      transaction.token = body[hash]['txs'][0]['denom'];
-      transaction.amount = body[hash]['txs'][0]['amount'].toString();
+      var txs = body[hash]['txs'] ?? List.empty();
+      if (txs.length == 0) continue;
+      transaction.token = txs[0]['denom'];
+      transaction.amount = txs[0]['amount'].toString();
 
       if (isWithdrawal == true) {
-        transaction.recipient = body[hash]['txs'][0]['address'];
+        transaction.recipient = txs[0]['address'];
       } else {
-        transaction.sender = body[hash]['txs'][0]['address'];
+        transaction.sender = txs[0]['address'];
       }
 
       transactions.add(transaction);

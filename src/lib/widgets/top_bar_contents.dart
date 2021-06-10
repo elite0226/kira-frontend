@@ -55,67 +55,67 @@ class _TopBarContentsState extends State<TopBarContents> {
 
     for (int i = 0; i < 6; i++) {
       if (!widget._loggedIn ? _NotSearched[i] : true)
-      items.add(Container(
+        items.add(Container(
         margin: EdgeInsets.only(left: 30, right: 30, top: 10),
-        child: InkWell(
-          onHover: (value) {
-            setState(() {
-              value ? _isHovering[i] = true : _isHovering[i] = false;
-            });
-          },
-          onTap: () {
-            setTopbarIndex(i);
-            switch (i) {
-              case 0: // Acount
-                Navigator.pushReplacementNamed(context, '/account');
-                break;
-              case 1: // Deposit
-                Navigator.pushReplacementNamed(context, '/deposit');
-                break;
-              case 2: // Withdrawal
-                Navigator.pushReplacementNamed(context, '/withdraw');
-                break;
-              case 3: // Network
-                Navigator.pushReplacementNamed(context, '/network');
-                break;
-              case 4: // Proposals
-                Navigator.pushReplacementNamed(context, '/proposals');
-                break;
-              case 5: // Settings
-                // BlocProvider.of<NetworkBloc>(context).add(SetNetworkInfo(Strings.customNetwork, ""));
-                // removePassword();
-                // setInterxRPCUrl("");
-                Navigator.pushReplacementNamed(context, '/settings');
-                break;
-            }
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                !widget._loggedIn ? Strings.navItemTitlesExplorer[i] : Strings.navItemTitles[i],
-                style: TextStyle(
-                  fontSize: 15,
-                  color: _isHovering[i] || i == selectedIndex ? KiraColors.kYellowColor : KiraColors.kGrayColor,),
-              ),
-              SizedBox(height: 5),
-              Visibility(
-                maintainAnimation: true,
-                maintainState: true,
-                maintainSize: true,
-                visible: _isHovering[i],
-                child: Container(
-                  alignment: Alignment.centerLeft,
-                  height: 3,
-                  width: 30,
-                  color: KiraColors.kYellowColor,
-                ),
-              ),
-            ]),
+          child: InkWell(
+            onHover: (value) {
+              setState(() {
+                value ? _isHovering[i] = true : _isHovering[i] = false;
+              });
+            },
+            onTap: () {
+              setTopbarIndex(i);
+              switch (i) {
+                case 0: // Acount
+                  Navigator.pushReplacementNamed(context, '/account');
+                  break;
+                case 1: // Deposit
+                  Navigator.pushReplacementNamed(context, '/deposit');
+                  break;
+                case 2: // Withdrawal
+                  Navigator.pushReplacementNamed(context, '/withdraw');
+                  break;
+                case 3: // Network
+                  Navigator.pushReplacementNamed(context, '/network');
+                  break;
+                case 4: // Proposals
+                  Navigator.pushReplacementNamed(context, '/proposals');
+                  break;
+                case 5: // Settings
+                  // BlocProvider.of<NetworkBloc>(context).add(SetNetworkInfo(Strings.customNetwork, ""));
+                  // removePassword();
+                  // setInterxRPCUrl("");
+                  Navigator.pushReplacementNamed(context, '/settings');
+                  break;
+              }
+            },
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    !widget._loggedIn ? Strings.navItemTitlesExplorer[i] : Strings.navItemTitles[i],
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: _isHovering[i] || i == selectedIndex ? KiraColors.kYellowColor : KiraColors.kGrayColor,),
+                  ),
+                  SizedBox(height: 5),
+                  Visibility(
+                    maintainAnimation: true,
+                    maintainState: true,
+                    maintainSize: true,
+                    visible: _isHovering[i],
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      height: 3,
+                      width: 30,
+                      color: KiraColors.kYellowColor,
+                    ),
+                  ),
+                ]),
           ),
-      ));
+        ));
     }
 
     return items;
@@ -302,7 +302,7 @@ class _TopBarContentsState extends State<TopBarContents> {
                       onPressed: () {
                         if (widget._loggedIn) {
                           removePassword();
-                          Navigator.pushReplacementNamed(context, '/');
+                          Navigator.pushReplacementNamed(context, '/login');
                         } else {
                           var nodeAddress = BlocProvider.of<NetworkBloc>(context).state.nodeAddress;
                           BlocProvider.of<NetworkBloc>(context).add(SetNetworkInfo(Strings.customNetwork, nodeAddress));

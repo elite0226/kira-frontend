@@ -32,6 +32,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
   int page = 1;
   StreamController validatorController = StreamController.broadcast();
 
+  bool isLoggedIn = false;
   String customInterxRPCUrl = "";
   List<String> networkIds = [Strings.customNetwork];
   String networkId = Strings.customNetwork;
@@ -77,13 +78,14 @@ class _NetworkScreenState extends State<NetworkScreen> {
     if (mounted) {
       setState(() {
         moreLoading = false;
-        favoriteValidators = BlocProvider
-            .of<ValidatorBloc>(context)
-            .state
-            .favoriteValidators;
+        if (isLoggedIn)
+          favoriteValidators = BlocProvider
+              .of<ValidatorBloc>(context)
+              .state
+              .favoriteValidators;
         var temp = networkService.validators;
         temp.forEach((element) {
-          element.isFavorite = favoriteValidators.contains(element.address);
+          element.isFavorite = isLoggedIn || favoriteValidators.contains(element.address);
         });
         validators.clear();
         validators.addAll(temp);
@@ -248,7 +250,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
           this.setState(() {
             query = newText.toLowerCase();
             filteredValidators = validators.where((x) =>
-              x.moniker.toLowerCase().contains(query) || x.address.toLowerCase().contains(query))
+            x.moniker.toLowerCase().contains(query) || x.address.toLowerCase().contains(query))
                 .toList();
             expandedTop = -1;
             validatorController.add(null);
@@ -268,130 +270,131 @@ class _NetworkScreenState extends State<NetworkScreen> {
 
   Widget addTableHeader() {
     return Container(
-      padding: EdgeInsets.all(5),
-      margin: EdgeInsets.only(right: 40, bottom: 20),
-      child: Row(
-        children: [
-          Expanded(
-              flex: 2,
-              child: InkWell(
-                  onTap: () => this.setState(() {
-                    if (sortIndex == 3)
-                      isAscending = !isAscending;
-                    else {
-                      sortIndex = 3;
-                      isAscending = true;
-                    }
-                    expandedTop = -1;
-                    refreshTableSort();
-                  }),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: sortIndex != 3
-                          ? [
-                        Text("Status",
-                            style: TextStyle(
-                                color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                      ]
-                          : [
-                        Text("Status",
-                            style: TextStyle(
-                                color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                        SizedBox(width: 5),
-                        Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
-                      ]))),
-          Expanded(
-              flex: ResponsiveWidget.isSmallScreen(context) ? 3 : 2,
-              child: InkWell(
-                  onTap: () => this.setState(() {
-                    if (sortIndex == 0)
-                      isAscending = !isAscending;
-                    else {
-                      sortIndex = 0;
-                      isAscending = true;
-                    }
-                    expandedTop = -1;
-                    refreshTableSort();
-                  }),
-                  child: Row(
+        padding: EdgeInsets.all(5),
+        margin: EdgeInsets.only(right: 40, bottom: 20),
+        child: Row(
+            children: [
+            Expanded(
+            flex: 2,
+            child: InkWell(
+                onTap: () => this.setState(() {
+                  if (sortIndex == 3)
+                    isAscending = !isAscending;
+                  else {
+                    sortIndex = 3;
+                    isAscending = true;
+                  }
+                  expandedTop = -1;
+                  refreshTableSort();
+                }),
+                child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: sortIndex != 0
-                        ? [
-                      Text("Rank",
-                          style:
-                          TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+                    children: sortIndex != 3
+                    ? [
+                    Text("Status",
+                        style: TextStyle(
+                            color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
                     ]
                         : [
-                      Text("Rank",
-                          style:
-                          TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                      SizedBox(width: 5),
-                      Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
-                    ],
-                  ))),
-          Expanded(
-              flex: 3,
-              child: InkWell(
-                  onTap: () => this.setState(() {
-                    if (sortIndex == 2)
-                      isAscending = !isAscending;
-                    else {
-                      sortIndex = 2;
-                      isAscending = true;
-                    }
-                    expandedTop = -1;
-                    refreshTableSort();
-                  }),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: sortIndex != 2
-                          ? [
-                        Text("Moniker",
-                            style: TextStyle(
-                                color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                      ]
-                          : [
-                        Text("Moniker",
-                            style: TextStyle(
-                                color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                        SizedBox(width: 5),
-                        Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
-                      ]))),
-          Expanded(
-              flex: ResponsiveWidget.isSmallScreen(context) ? 4 : 9,
-              child: Text("Validator Address",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold))),
-          Expanded(
-              flex: ResponsiveWidget.isSmallScreen(context) ? 3 : 2,
-              child: InkWell(
-                  onTap: () => this.setState(() {
-                    if (sortIndex == 4)
-                      isAscending = !isAscending;
-                    else {
-                      sortIndex = 4;
-                      isAscending = true;
-                    }
-                    expandedTop = -1;
-                    refreshTableSort();
-                  }),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: sortIndex != 4
-                          ? [
-                        Text("Favorite",
-                            style: TextStyle(
-                                color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                      ]
-                          : [
-                        Text("Favorite",
-                            style: TextStyle(
-                                color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                        SizedBox(width: 5),
-                        Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
-                      ]))),
-        ],
-      ),
+                    Text("Status",
+                    style: TextStyle(
+                color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+            SizedBox(width: 5),
+            Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
+            ]))),
+    Expanded(
+    flex: ResponsiveWidget.isSmallScreen(context) ? 3 : 2,
+    child: InkWell(
+    onTap: () => this.setState(() {
+    if (sortIndex == 0)
+    isAscending = !isAscending;
+    else {
+    sortIndex = 0;
+    isAscending = true;
+    }
+    expandedTop = -1;
+    refreshTableSort();
+    }),
+    child: Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: sortIndex != 0
+    ? [
+    Text("Rank",
+    style:
+    TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+    ]
+        : [
+    Text("Rank",
+    style:
+    TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+    SizedBox(width: 5),
+    Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
+    ],
+    ))),
+    Expanded(
+    flex: 3,
+    child: InkWell(
+    onTap: () => this.setState(() {
+    if (sortIndex == 2)
+    isAscending = !isAscending;
+    else {
+    sortIndex = 2;
+    isAscending = true;
+    }
+    expandedTop = -1;
+    refreshTableSort();
+    }),
+    child: Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: sortIndex != 2
+    ? [
+    Text("Moniker",
+    style: TextStyle(
+    color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+    ]
+        : [
+    Text("Moniker",
+    style: TextStyle(
+    color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+    SizedBox(width: 5),
+    Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
+    ]))),
+    Expanded(
+    flex: ResponsiveWidget.isSmallScreen(context) ? 4 : 9,
+    child: Text("Validator Address",
+    textAlign: TextAlign.center,
+    style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold))),
+    !isLoggedIn ? Container() :
+    Expanded(
+    flex: ResponsiveWidget.isSmallScreen(context) ? 3 : 2,
+    child: InkWell(
+    onTap: () => this.setState(() {
+    if (sortIndex == 4)
+    isAscending = !isAscending;
+    else {
+    sortIndex = 4;
+    isAscending = true;
+    }
+    expandedTop = -1;
+    refreshTableSort();
+    }),
+    child: Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: sortIndex != 4
+    ? [
+    Text("Favorite",
+    style: TextStyle(
+    color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+    ]
+        : [
+    Text("Favorite",
+    style: TextStyle(
+    color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+    SizedBox(width: 5),
+    Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
+    ]))),
+    ],
+    ),
     );
   }
 
@@ -403,6 +406,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ValidatorsTable(
+              isLoggedIn: isLoggedIn,
               isFiltering: query.isNotEmpty,
               page: page,
               setPage: (newPage) => {

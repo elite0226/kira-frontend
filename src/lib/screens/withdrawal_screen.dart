@@ -682,7 +682,6 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
 
                         //var base64Str = base64.decode(widget.qrData[i]);
                         //var bytes = utf8.decode(base64Str);
-                        print(data);
 
                         var signature = json.decode(data);
 

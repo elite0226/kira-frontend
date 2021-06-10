@@ -20,9 +20,11 @@ class ValidatorsTable extends StatefulWidget {
   final Function loadMore;
   final int page;
   final Function setPage;
+  final bool isLoggedIn;
 
   ValidatorsTable({
     Key key,
+    this.isLoggedIn,
     this.totalValidators,
     this.validators,
     this.expandedTop,
@@ -228,7 +230,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
                             )
                         )
                     ),
-                    Expanded(
+                    !widget.isLoggedIn ? Container() : Expanded(
                         flex: 2,
                         child: IconButton(
                             icon: Icon(

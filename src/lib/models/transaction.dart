@@ -28,7 +28,7 @@ class Transaction {
     this.gas,
     this.status,
     this.timestamp,
-    this.memo,
+    this.memo = "",
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) => _$TransactionFromJson(json);

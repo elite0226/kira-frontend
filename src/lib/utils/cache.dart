@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:kira_auth/models/export.dart';
+import 'package:kira_auth/models/block_transaction.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String TS_PREFIX = 'spc_ts_';

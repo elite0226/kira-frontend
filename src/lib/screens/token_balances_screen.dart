@@ -198,7 +198,6 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
       setState(() {
         isValidAddress = false;
       });
-          // Invalid Address
     }
 
     if (!isValidAddress) {
@@ -285,12 +284,13 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
       });
     }
   }
+
   static Uint8List _convertBits(
-      List<int> data,
-      int from,
-      int to, {
-        bool pad = true,
-      }) {
+    List<int> data,
+    int from,
+    int to, {
+    bool pad = true,
+  }) {
     var acc = 0;
     var bits = 0;
     final result = <int>[];
@@ -324,6 +324,7 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
   @override
   void initState() {
     super.initState();
+
 
     setTopbarIndex(0);
     setTopBarStatus(true);
@@ -374,7 +375,6 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
         body: BlocConsumer<AccountBloc, AccountState>(
             listener: (context, state) {},
@@ -411,6 +411,7 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
                       )));
             }));
   }
+
   Widget addSearchInput() {
     return Container(
       width: 500,
@@ -613,8 +614,8 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
               Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(currentAccount.bech32Address,
-                        softWrap: true,
+                    Text(currentAccount.getReducedBechAddress,
+                        textAlign: TextAlign.end,
                         style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
                     SizedBox(width: 5),
                       Image.asset(Strings.copyImage, width:20, height:20, fit: BoxFit.fitWidth),
@@ -712,6 +713,12 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text(
+              Strings.depositTransactions,
+              textAlign: TextAlign.start,
+              style: TextStyle(color: KiraColors.white, fontSize: 20, fontWeight: FontWeight.w900),
+            ),
+            SizedBox(height: 20),
             DepositTransactionsTable(transactions: depositTrx)
           ],
         ));
@@ -724,6 +731,12 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text(
+              Strings.withdrawalTransactions,
+              textAlign: TextAlign.start,
+              style: TextStyle(color: KiraColors.white, fontSize: 20, fontWeight: FontWeight.w900),
+            ),
+            SizedBox(height: 30),
             WithdrawalTransactionsTable(transactions: withdrawTrx)
           ],
         ));
@@ -808,7 +821,7 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
               tokens: tokens,
               address: this.query,
               expandedIndex: expandedIndex,
-              isLoggedIn : isLoggedIn,
+              isLoggedIn: isLoggedIn,
               onTapRow: (index) => this.setState(() {
                 expandedIndex = index;
               }),

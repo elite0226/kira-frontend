@@ -21,19 +21,26 @@ class HamburgerDrawer extends StatefulWidget {
 
 class _HamburgerDrawerState extends State<HamburgerDrawer> {
   StatusService statusService = StatusService();
-  final List _isHovering = [false, false, false, false, false, false, false, false, false, false];
+  final List _isHovering = [false, false, false, false, false, false];
 
   // String networkId = Strings.noAvailableNetworks;
+
+  bool isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
+
+    getLoginStatus().then((loggedIn) => this.setState(() {
+      isLoggedIn = loggedIn;
+    }));
   }
 
   List<Widget> navItems() {
     List<Widget> items = [];
 
     for (int i = 0; i < 6; i++) {
+      if (!isLoggedIn && (i == 1 || i == 2)) continue;
       items.add(
         InkWell(
           onHover: (value) {
@@ -59,7 +66,7 @@ class _HamburgerDrawerState extends State<HamburgerDrawer> {
                 Navigator.pushReplacementNamed(context, '/proposals');
                 break;
               case 5: // Settings
-                Navigator.pushReplacementNamed(context, '/settings');
+                Navigator.pushReplacementNamed(context, isLoggedIn ? '/settings' : '/login');
                 break;
             }
           },
@@ -69,7 +76,7 @@ class _HamburgerDrawerState extends State<HamburgerDrawer> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                Strings.navItemTitles[i],
+                isLoggedIn ? Strings.navItemTitles[i] : Strings.navItemTitlesExplorer[i],
                 style: TextStyle(
                   fontSize: 18,
                   color: _isHovering[i] ? KiraColors.white : KiraColors.kGrayColor,
@@ -94,6 +101,23 @@ class _HamburgerDrawerState extends State<HamburgerDrawer> {
         ),
       );
     }
+
+    if (isLoggedIn)
+      items.add(ElevatedButton(
+        onPressed: () {
+          removePassword();
+          Navigator.pushReplacementNamed(context, '/login');
+        },
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+          child: Text(Strings.logout,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ));
 
     return items;
   }
