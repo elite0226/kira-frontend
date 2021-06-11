@@ -88,4 +88,21 @@ class Validator {
         ? identity : "";
     return value.isEmpty ? "Unknown" : value;
   }
+
+  static Validator fromJson(Map<String, dynamic> data) {
+    return Validator(
+      address: data['address'],
+      valkey: data['valkey'],
+      pubkey: data['pubkey'],
+      moniker: data['moniker'],
+      website: data['website'] ?? "",
+      social: data['social'] ?? "",
+      identity: data['identity'] ?? "",
+      commission: double.parse(data['commission'] ?? "0"),
+      status: data['status'],
+      rank: data['rank'] != null ? int.parse(data['rank']) : 0,
+      streak: data['streak'] != null ? int.parse(data['streak']) : 0,
+      mischance: data['mischance'] != null ? int.parse(data['mischance']) : 0,
+    );
+  }
 }

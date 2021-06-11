@@ -14,6 +14,7 @@ class Transaction {
   String gas;
   String status;
   String timestamp;
+  String memo;
   bool isNew;
 
   Transaction({
@@ -27,6 +28,7 @@ class Transaction {
     this.gas,
     this.status,
     this.timestamp,
+    this.memo = "",
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) => _$TransactionFromJson(json);

@@ -17,9 +17,14 @@ class ValidatorsTable extends StatefulWidget {
   final StreamController controller;
   final int totalPages;
   final bool isFiltering;
+  final Function loadMore;
+  final int page;
+  final Function setPage;
+  final bool isLoggedIn;
 
   ValidatorsTable({
     Key key,
+    this.isLoggedIn,
     this.totalValidators,
     this.validators,
     this.expandedTop,
@@ -28,6 +33,9 @@ class ValidatorsTable extends StatefulWidget {
     this.controller,
     this.totalPages,
     this.isFiltering,
+    this.loadMore,
+    this.page,
+    this.setPage,
   }) : super();
 
   @override
@@ -36,7 +44,6 @@ class ValidatorsTable extends StatefulWidget {
 
 class _ValidatorsTableState extends State<ValidatorsTable> {
   List<ExpandableController> controllers = List.filled(5, null);
-  int page = 1;
   int startAt = 0;
   int endAt;
   int pageCount = 5;
@@ -51,12 +58,18 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
   }
 
   setPage({int newPage = 0}) {
+    if (newPage > 0)
+      widget.setPage(newPage);
+    var page = newPage == 0 ? widget.page : newPage;
     this.setState(() {
-      page = newPage == 0 ? page : newPage;
       startAt = page * 5 - 5;
       endAt = startAt + pageCount;
 
-      currentValidators = widget.validators.sublist(startAt, min(endAt, widget.validators.length));
+      currentValidators = [];
+      if (widget.validators.length > startAt)
+        currentValidators = widget.validators.sublist(startAt, min(endAt, widget.validators.length));
+      if (currentValidators.length < 5 && (widget.validators.length / 5).ceil() < widget.totalPages)
+        widget.loadMore();
     });
     if (newPage > 0)
       refreshExpandStatus();
@@ -109,20 +122,20 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         IconButton(
-          onPressed: page > 1 ? () => setPage(newPage: page - 1) : null,
+          onPressed: widget.page > 1 ? () => setPage(newPage: widget.page - 1) : null,
           icon: Icon(
             Icons.arrow_back_ios,
             size: 20,
-            color: page > 1 ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2),
+            color: widget.page > 1 ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2),
           ),
         ),
-        Text("$page / $totalPages", style: TextStyle(fontSize: 16, color: KiraColors.white, fontWeight: FontWeight.bold)),
+        Text("${widget.page} / $totalPages", style: TextStyle(fontSize: 16, color: KiraColors.white, fontWeight: FontWeight.bold)),
         IconButton(
-          onPressed: page < totalPages ? () => setPage(newPage: page + 1) : null,
+          onPressed: widget.page < totalPages ? () => setPage(newPage: widget.page + 1) : null,
           icon: Icon(
               Icons.arrow_forward_ios,
               size: 20,
-              color: page < totalPages ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2)
+              color: widget.page < totalPages ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2)
           ),
         ),
       ],
@@ -150,7 +163,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
                 refreshExpandStatus(newExpandTop: newExpandTop);
               },
               child: Container(
-                padding: EdgeInsets.only(top: 10, bottom: 10),
+                padding: EdgeInsets.only(top: 20, bottom: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -217,7 +230,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
                             )
                         )
                     ),
-                    Expanded(
+                    !widget.isLoggedIn ? Container() : Expanded(
                         flex: 2,
                         child: IconButton(
                             icon: Icon(
@@ -353,7 +366,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
                     shape: BoxShape.rectangle,
                     border: new Border.all(color: validator.getCommissionColor().withOpacity(0.6), width: 1),
                   ),
-                  child: Padding(padding: EdgeInsets.all(3), child: Container(margin: EdgeInsets.only(right: 194.0 - 194.0 * validator.commission), height: 24, decoration: BoxDecoration(shape: BoxShape.rectangle, color: validator.getCommissionColor())))),
+                  child: Padding(padding: EdgeInsets.all(3), child: Container(margin: EdgeInsets.only(right: 194.0 - 194.0 * validator.commission / 100000), height: 24, decoration: BoxDecoration(shape: BoxShape.rectangle, color: validator.getCommissionColor())))),
             ],
           ),
           SizedBox(height: 10),

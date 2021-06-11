@@ -186,7 +186,7 @@ class _LoginWithKeyfileScreenState extends State<LoginWithKeyfileScreen> {
   Widget addDropzone() {
     return Container(
         margin: EdgeInsets.only(bottom: 20),
-        child: Row(
+        child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[

@@ -152,11 +152,20 @@ class Proposal {
   final DateTime enactmentEndTime;
   final DateTime votingEndTime;
   final ProposalContent content;
+  final String jsonString;
   Voteability voteability;
   Map<String, double> voteResults;
   String get getContent => content.raw;
 
-  Proposal({ this.proposalId = "", this.description = "", this.result = "", this.submitTime, this.enactmentEndTime, this.votingEndTime, this.content }) {
+  Proposal({
+    this.proposalId = "",
+    this.description = "",
+    this.result = "",
+    this.submitTime,
+    this.enactmentEndTime,
+    this.votingEndTime,
+    this.content,
+    this.jsonString}) {
     assert(this.proposalId != null, this.result != null);
   }
 
@@ -248,5 +257,18 @@ class Proposal {
       default:
         return KiraColors.kGrayColor;
     }
+  }
+
+  static Proposal fromJson(Map<String, dynamic> data) {
+    return Proposal(
+      proposalId: data['proposal_id'],
+      description: data['description'],
+      submitTime: data['submit_time'] != null ? DateTime.parse(data['submit_time']) : null,
+      enactmentEndTime: data['enactment_end_time'] != null ? DateTime.parse(data['enactment_end_time']) : null,
+      votingEndTime: data['voting_end_time'] != null ? DateTime.parse(data['voting_end_time']) : null,
+      result: data['result'] ?? "VOTE_RESULT_UNKNOWN",
+      content: ProposalContent.parse(data['content']),
+      jsonString: jsonEncode(data),
+    );
   }
 }

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:kira_auth/models/transaction.dart';
 import 'package:kira_auth/utils/export.dart';
 
+import 'custom_dialog.dart';
+
 class DepositTransactionsTable extends StatefulWidget {
   final List<Transaction> transactions;
 
@@ -115,6 +117,26 @@ class _DepositTransactionsTableState extends State<DepositTransactionsTable> {
                   var token = entry.value;
                   String tokenHash = token.hash.toLowerCase();
                   return DataRow(
+                      onSelectChanged: (bool selected) {
+                        if (selected) {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return CustomDialog(
+                                contentWidgets: [
+                                  Text(Strings.kiraNetwork,
+                                    style: TextStyle(fontSize: 22, color: KiraColors.kPurpleColor, fontWeight: FontWeight.w600),
+                                  ),
+                                  SizedBox(height: 15),
+                                  Text(token.memo,
+                                      style: TextStyle(fontSize: 18), textAlign: TextAlign.center),
+                                  SizedBox(height: 22),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                      },
                       color: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
                         // All rows will have the same selected color.
                         if (states.contains(MaterialState.selected)) return KiraColors.kYellowColor1.withOpacity(0.3);

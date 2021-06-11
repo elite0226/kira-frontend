@@ -41,28 +41,34 @@ class ProposalService {
     }
     if (limit == 0) return;
 
-    var data = await http.get(apiUrl[0] + "/kira/gov/proposals?offset=$offset&limit=$limit&count_total=true",
-        headers: {'Access-Control-Allow-Origin': apiUrl[1]});
-
-    var bodyData = json.decode(data.body);
-    if (!bodyData.containsKey('proposals')) return;
-
-    var proposals = bodyData['proposals'];
-    for (int i = 0; i < proposals.length; i++) {
-      Proposal proposal = Proposal(
-        proposalId: proposals[i]['proposal_id'],
-        description: proposals[i]['description'],
-        submitTime: proposals[i]['submit_time'] != null ? DateTime.parse(proposals[i]['submit_time']) : null,
-        enactmentEndTime:
-            proposals[i]['enactment_end_time'] != null ? DateTime.parse(proposals[i]['enactment_end_time']) : null,
-        votingEndTime: proposals[i]['voting_end_time'] != null ? DateTime.parse(proposals[i]['voting_end_time']) : null,
-        result: proposals[i]['result'] ?? "VOTE_RESULT_UNKNOWN",
-        content: ProposalContent.parse(proposals[i]['content']),
-      );
+    var k = 0;
+    while (k < limit) {
+      if (!await checkModelExists(ModelType.PROPOSAL, (offset + k).toString()))
+        break;
+      var proposal = Proposal.fromJson(await getModel(ModelType.PROPOSAL, (offset + k).toString()));
       proposal.voteability = await checkVoteability(proposal.proposalId, account);
       proposal.voteResults = await getVoteResult(proposal.proposalId);
       proposalList.add(proposal);
+      k++;
     }
+
+    if (k < limit) {
+      var data = await http.get(apiUrl[0] + "/kira/gov/proposals?offset=${offset + k}&limit=${limit - k}&count_total=true",
+          headers: {'Access-Control-Allow-Origin': apiUrl[1]});
+
+      var bodyData = json.decode(data.body);
+      if (!bodyData.containsKey('proposals')) return;
+
+      var proposals = bodyData['proposals'];
+      for (int i = 0; i < proposals.length; i++) {
+        Proposal proposal = Proposal.fromJson(proposals[i]);
+        proposal.voteability = await checkVoteability(proposal.proposalId, account);
+        proposal.voteResults = await getVoteResult(proposal.proposalId);
+        proposalList.add(proposal);
+        storeModels(ModelType.PROPOSAL, proposal.proposalId, proposal.jsonString);
+      }
+    }
+
     final now = DateTime.now();
     this.proposals.addAll(proposalList);
     var voteables = this.proposals.where((p) => p.votingEndTime.difference(now).inSeconds > 0).toList();

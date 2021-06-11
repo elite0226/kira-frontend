@@ -12,7 +12,6 @@ import 'package:kira_auth/blocs/export.dart';
 import 'package:kira_auth/models/export.dart';
 
 class NetworkScreen extends StatefulWidget {
-
   @override
   _NetworkScreenState createState() => _NetworkScreenState();
 }
@@ -20,67 +19,73 @@ class NetworkScreen extends StatefulWidget {
 class _NetworkScreenState extends State<NetworkScreen> {
   NetworkService networkService = NetworkService();
   StatusService statusService = StatusService();
-  Timer timer;
   List<Validator> validators = [];
   List<Validator> filteredValidators = [];
   String query = "";
-  bool initialFetched = false;
+  bool moreLoading = false;
 
   List<String> favoriteValidators = [];
   int expandedTop = -1;
   int sortIndex = 0;
   bool isAscending = true;
   bool isNetworkHealthy = false;
+  int page = 1;
   StreamController validatorController = StreamController.broadcast();
 
   bool isLoggedIn = false;
-
-  Future<bool> isUserLoggedIn() async {
-    isLoggedIn = await getLoginStatus();
-    return isLoggedIn;
-
-  }
-
+  String customInterxRPCUrl = "";
+  List<String> networkIds = [Strings.customNetwork];
+  String networkId = Strings.customNetwork;
 
   @override
   void initState() {
     super.initState();
 
-    setTopBarStatus(true);
+    setTopbarIndex(3);
 
-    isUserLoggedIn().then((isLoggedIn) {
+    var uri = Uri.dataFromString(html.window.location.href); //converts string to a uri
+    Map<String, String> params = uri.queryParameters; // query parameters automatically populated
 
-      if (isLoggedIn){
-        checkPasswordExpired().then((success) {
-          if (success) {
-            Navigator.pushReplacementNamed(context, '/login');
-          }
-        });
-      }
-    });
+    if(params.containsKey("rpc")) {
+      customInterxRPCUrl = params['rpc'];
+      setState(() {
+        isNetworkHealthy = false;
+      });
+      setInterxRPCUrl(customInterxRPCUrl);
+    } else {
+      getLoginStatus().then((isLoggedIn) {
+        if(isLoggedIn) {
+          setState(() {
+            checkPasswordExpired().then((success) {
+              if (success) {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
+            });
+          });
+        }
+      });
+    }
 
     getNodeStatus();
-
     getValidators(false);
-    timer = Timer.periodic(Duration(seconds: 10), (timer) {
-      getValidators(true);
-    });
   }
 
   void getValidators(bool loadNew) async {
+    setState(() {
+      moreLoading = !loadNew;
+    });
     await networkService.getValidators(loadNew);
-    if (networkService.totalCount > networkService.validators.length)
-      getValidators(false);
     if (mounted) {
       setState(() {
-        initialFetched = true;
-        favoriteValidators = BlocProvider
-            .of<ValidatorBloc>(context)
-            .state
-            .favoriteValidators;
+        moreLoading = false;
+        if (isLoggedIn)
+          favoriteValidators = BlocProvider
+              .of<ValidatorBloc>(context)
+              .state
+              .favoriteValidators;
         var temp = networkService.validators;
         temp.forEach((element) {
-          element.isFavorite = favoriteValidators.contains(element.address);
+          element.isFavorite = isLoggedIn || favoriteValidators.contains(element.address);
         });
         validators.clear();
         validators.addAll(temp);
@@ -88,22 +93,15 @@ class _NetworkScreenState extends State<NetworkScreen> {
         var uri = Uri.dataFromString(html.window.location.href);
         Map<String, String> params = uri.queryParameters;
 
-        if (params.containsKey("info")) {
-          var searchInfo = params['info'];
+        filteredValidators.clear();
+        var keyword = query;
+        if (params.containsKey("info"))
+          keyword = params['info'].toLowerCase();
 
-          filteredValidators = validators
-              .where((x) =>
-          x.moniker.toLowerCase().contains(searchInfo.toLowerCase()) ||
-              x.address.toLowerCase().contains(searchInfo.toLowerCase()))
-              .toList();
-        } else {
-          filteredValidators.clear();
-          filteredValidators.addAll(
-              query.isEmpty ? validators : validators.where((x) =>
-              x.moniker.toLowerCase().contains(query) ||
-                  x.address.toLowerCase().contains(query)));
-          validatorController.add(null);
-        }
+        filteredValidators.addAll(keyword.isEmpty ? validators : validators.where((x) =>
+        x.moniker.toLowerCase().contains(keyword) ||
+            x.address.toLowerCase().contains(keyword)));
+        validatorController.add(null);
       });
     }
   }
@@ -113,12 +111,26 @@ class _NetworkScreenState extends State<NetworkScreen> {
       await statusService.getNodeStatus();
 
       setState(() {
+        String testedRpcUrl = statusService.rpcUrl;
+
         if (statusService.nodeInfo != null &&
             statusService.nodeInfo.network.isNotEmpty) {
           isNetworkHealthy = statusService.isNetworkHealthy;
-          BlocProvider.of<NetworkBloc>(context)
-              .add(SetNetworkInfo(
-              statusService.nodeInfo.network, statusService.rpcUrl));
+          if (this.customInterxRPCUrl != "") {
+            setState(() {
+              if (!networkIds.contains(statusService.nodeInfo.network)) {
+                networkIds.add(statusService.nodeInfo.network);
+              }
+              networkId = statusService.nodeInfo.network;
+              isNetworkHealthy = statusService.isNetworkHealthy;
+            });
+            BlocProvider.of<NetworkBloc>(context).add(SetNetworkInfo(networkId, testedRpcUrl));
+            this.customInterxRPCUrl = "";
+          } else {
+            BlocProvider.of<NetworkBloc>(context)
+                .add(SetNetworkInfo(
+                statusService.nodeInfo.network, statusService.rpcUrl));
+          }
         } else {
           isNetworkHealthy = false;
         }
@@ -145,7 +157,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
                           children: <Widget>[
                             addHeader(),
                             addTableHeader(),
-                            !initialFetched ? addLoadingIndicator() : filteredValidators.isEmpty ? Container(
+                            moreLoading ? addLoadingIndicator() : filteredValidators.isEmpty ? Container(
                                 margin: EdgeInsets.only(top: 20, left: 20),
                                 child: Text("No validators to show",
                                     style: TextStyle(
@@ -352,6 +364,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
     child: Text("Validator Address",
     textAlign: TextAlign.center,
     style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold))),
+    !isLoggedIn ? Container() :
     Expanded(
     flex: ResponsiveWidget.isSmallScreen(context) ? 3 : 2,
     child: InkWell(
@@ -393,8 +406,16 @@ class _NetworkScreenState extends State<NetworkScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ValidatorsTable(
+              isLoggedIn: isLoggedIn,
               isFiltering: query.isNotEmpty,
+              page: page,
+              setPage: (newPage) => {
+                this.setState(() {
+                  page = newPage;
+                })
+              },
               totalPages: (networkService.totalCount / 5).ceil(),
+              loadMore: () => getValidators(false),
               totalValidators: validators,
               validators: filteredValidators,
               expandedTop: expandedTop,

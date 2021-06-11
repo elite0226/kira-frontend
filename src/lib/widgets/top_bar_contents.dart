@@ -23,12 +23,11 @@ class TopBarContents extends StatefulWidget {
 class _TopBarContentsState extends State<TopBarContents> {
   StatusService statusService = StatusService();
   final List _isHovering = [false, false, false, false, false, false, false, false, false, false];
-
   final List _NotSearched = [true, false, false, true, true, true];
 
   bool _isProcessing = false;
-
   String networkId = Strings.noAvailableNetworks;
+  int selectedIndex = 0;
 
   @override
   void initState() {
@@ -37,6 +36,7 @@ class _TopBarContentsState extends State<TopBarContents> {
   }
 
   void getNodeStatus() async {
+    selectedIndex = await getTopbarIndex();
     await statusService.getNodeStatus();
 
     if (mounted) {
@@ -56,7 +56,7 @@ class _TopBarContentsState extends State<TopBarContents> {
     for (int i = 0; i < 6; i++) {
       if (!widget._loggedIn ? _NotSearched[i] : true)
         items.add(Container(
-          margin: EdgeInsets.only(left: 20, right: 20, top: 10),
+        margin: EdgeInsets.only(left: 30, right: 30, top: 10),
           child: InkWell(
             onHover: (value) {
               setState(() {
@@ -64,6 +64,7 @@ class _TopBarContentsState extends State<TopBarContents> {
               });
             },
             onTap: () {
+              setTopbarIndex(i);
               switch (i) {
                 case 0: // Acount
                   Navigator.pushReplacementNamed(context, '/account');
@@ -96,10 +97,8 @@ class _TopBarContentsState extends State<TopBarContents> {
                   Text(
                     !widget._loggedIn ? Strings.navItemTitlesExplorer[i] : Strings.navItemTitles[i],
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: _isHovering[i] ? KiraColors.kYellowColor : KiraColors.kGrayColor,
-                    ),
+                      fontSize: 15,
+                      color: _isHovering[i] || i == selectedIndex ? KiraColors.kYellowColor : KiraColors.kGrayColor,),
                   ),
                   SizedBox(height: 5),
                   Visibility(
@@ -303,7 +302,7 @@ class _TopBarContentsState extends State<TopBarContents> {
                       onPressed: () {
                         if (widget._loggedIn) {
                           removePassword();
-                          Navigator.pushReplacementNamed(context, '/');
+                          Navigator.pushReplacementNamed(context, '/login');
                         } else {
                           var nodeAddress = BlocProvider.of<NetworkBloc>(context).state.nodeAddress;
                           BlocProvider.of<NetworkBloc>(context).add(SetNetworkInfo(Strings.customNetwork, nodeAddress));

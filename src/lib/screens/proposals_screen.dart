@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -25,24 +27,25 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
   List<Proposal> proposals = [];
   List<Proposal> filteredProposals = [];
   List<int> voteable = [0, 2];
-  Timer timer;
   String pendingTxHash;
   String cancelAccountNumber;
   String cancelSequence;
   String query = "";
-  bool initialFetched = false;
+  bool moreLoading = false;
 
   Account currentAccount;
   String feeAmount;
   Token feeToken;
   String expandedId;
   bool isNetworkHealthy = false;
+  int page = 1;
   StreamController proposalController = StreamController.broadcast();
 
   @override
   void initState() {
     super.initState();
 
+    // setTopBarStatus(true);
     getNodeStatus();
     if (mounted) {
       if (BlocProvider.of<AccountBloc>(context).state.currentAccount != null) {
@@ -58,28 +61,28 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
     }
 
     getProposals(false);
-    timer = Timer.periodic(Duration(seconds: 10), (timer) {
-      getProposals(true);
-    });
-  }
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
   }
 
   void getProposals(bool loadNew) async {
-    await proposalService.getProposals(loadNew, account: currentAccount != null ? currentAccount.bech32Address : '');
-    if (proposalService.totalCount > proposalService.proposals.length)
-      getProposals(false);
     setState(() {
-      initialFetched = true;
+      moreLoading = !loadNew;
+    });
+    await proposalService.getProposals(loadNew, account: currentAccount != null ? currentAccount.bech32Address : '');
+    setState(() {
+      moreLoading = false;
       proposals.clear();
       proposals.addAll(proposalService.proposals);
+
+      var uri = Uri.dataFromString(html.window.location.href);
+      Map<String, String> params = uri.queryParameters;
+      var keyword = query;
+      if (params.containsKey("info"))
+        keyword = params['info'].toLowerCase();
+
       filteredProposals.clear();
-      filteredProposals.addAll(query.isEmpty ? proposals : proposals.where((x) => x.proposalId.contains(query) ||
-          x.content.getName().toLowerCase().contains(query) || x.getStatusString().toLowerCase().contains(query)));
+      filteredProposals.addAll(keyword.isEmpty ? proposals : proposals.where((x) =>
+      x.proposalId.contains(keyword) || x.content.getName().toLowerCase().contains(keyword) ||
+          x.getStatusString().toLowerCase().contains(keyword)));
       proposalController.add(null);
     });
   }
@@ -125,12 +128,6 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    checkPasswordExpired().then((success) {
-      if (success) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    });
-
     return Scaffold(
         body: BlocConsumer<AccountBloc, AccountState>(
             listener: (context, state) {},
@@ -148,7 +145,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                           children: <Widget>[
                             addHeader(),
                             addTableHeader(),
-                            !initialFetched ? addLoadingIndicator() : filteredProposals.isEmpty ? Container(
+                            moreLoading ? addLoadingIndicator() : filteredProposals.isEmpty ? Container(
                                 margin: EdgeInsets.only(top: 20, left: 20),
                                 child: Text("No proposals to show",
                                     style: TextStyle(
@@ -281,6 +278,12 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ProposalsTable(
+              page: page,
+              setPage: (newPage) => {
+                this.setState(() {
+                  page = newPage;
+                })
+              },
               isFiltering: query.isNotEmpty,
               proposals: filteredProposals,
               voteable: voteable,
@@ -289,6 +292,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                 expandedId = id;
               }),
               totalPages: (proposalService.totalCount / 5).ceil(),
+              loadMore: () => getProposals(false),
               controller: proposalController,
               onTapVote: (proposalId, option) => sendProposal(proposalId, option),
             ),
@@ -345,7 +349,6 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
       result = await TransactionSender.broadcastStdTx(account: currentAccount, stdTx: signedStdTx);
     } catch (error) {
     }
-    print("Cancelled transaction - $result");
     cancelAccountNumber = '';
     cancelSequence = '';
   }
@@ -372,7 +375,6 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
       result = error.toString();
     }
     Navigator.of(context, rootNavigator: true).pop();
-    print("Sent transaction - $result");
 
     String voteResult, txHash;
     if (result == null) {

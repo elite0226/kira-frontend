@@ -98,7 +98,6 @@ class _SaifuFastQRState extends State<SaifuFastQR> {
     String str = widget.frameData;
     Iterable<Match> matches = exp.allMatches(str);
     var list = matches.map((m) => m.group(0)).toList();
-    print(list);
 
     List<String> stdFrame = [];
     for (var i = 0; i < list.length; i++) {
@@ -112,7 +111,6 @@ class _SaifuFastQRState extends State<SaifuFastQR> {
       stdFrame.add(jsonFrame);
     }
 
-    print(stdFrame);
     setState(() {
       widget.data = [];
       widget.data = stdFrame;

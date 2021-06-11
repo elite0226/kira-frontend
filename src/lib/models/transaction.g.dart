@@ -18,6 +18,7 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) {
     gas: json['gas'] as String,
     status: json['status'] as String,
     timestamp: json['timestamp'] as String,
+    // memo: json['memo'] as String
   );
 }
 
@@ -31,4 +32,5 @@ Map<String, dynamic> _$TransactionToJson(Transaction instance) => <String, dynam
       'gas': instance.gas,
       'status': instance.status,
       'timestamp': instance.timestamp,
+      // 'memo': instance.memo,
     };

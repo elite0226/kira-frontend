@@ -1,5 +1,6 @@
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kira_auth/utils/export.dart';
@@ -7,7 +8,6 @@ import 'package:kira_auth/services/export.dart';
 import 'package:kira_auth/widgets/export.dart';
 import 'package:kira_auth/blocs/export.dart';
 import 'package:kira_auth/config.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -35,7 +35,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (params.containsKey("rpc")) {
       var rpcURL = params['rpc'];
       onConnectPressed(rpcURL);
-      print(rpcURL);
     }
 
     setTopBarStatus(false);
@@ -44,6 +43,13 @@ class _LoginScreenState extends State<LoginScreen> {
     rpcUrlController = TextEditingController();
     getNodeStatus(true);
     // getInterxRPCUrl();
+    initializeValues();
+  }
+
+  void initializeValues() {
+    setLastSearchedAccount("");
+    setTopbarIndex(0);
+    setTabIndex(0);
   }
 
   @override
@@ -306,7 +312,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) {
       setState(() {
         isLoading = true;
-        isNetworkHealthy = false;
       });
     }
 
@@ -316,8 +321,6 @@ class _LoginScreenState extends State<LoginScreen> {
     Future.delayed(const Duration(milliseconds: 500), () async {
       getNodeStatus(false);
     });
-    //getNodeStatus();
-    //getInterxRPCUrl();
   }
 
   Widget addDescription() {

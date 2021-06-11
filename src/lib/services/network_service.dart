@@ -57,23 +57,8 @@ class NetworkService {
     if (!bodyData.containsKey('validators')) return;
     var validators = bodyData['validators'];
 
-    for (int i = 0; i < validators.length; i++) {
-      Validator validator = Validator(
-        address: validators[i]['address'],
-        valkey: validators[i]['valkey'],
-        pubkey: validators[i]['pubkey'],
-        moniker: validators[i]['moniker'],
-        website: validators[i]['website'] ?? "",
-        social: validators[i]['social'] ?? "",
-        identity: validators[i]['identity'] ?? "",
-        commission: double.parse(validators[i]['commission'] ?? "0"),
-        status: validators[i]['status'],
-        rank: validators[i]['rank'] != null ? int.parse(validators[i]['rank']) : 0,
-        streak: validators[i]['streak'] != null ? int.parse(validators[i]['streak']) : 0,
-        mischance: validators[i]['mischance'] != null ? int.parse(validators[i]['mischance']) : 0,
-      );
-      validatorList.add(validator);
-    }
+    for (int i = 0; i < validators.length; i++)
+      validatorList.add(Validator.fromJson(validators[i]));
 
     this.validators.addAll(validatorList);
     sortValidators();
@@ -150,35 +135,31 @@ class NetworkService {
     }
     if (limit == 0) return;
 
-    var apiUrl = await loadInterxURL();
-    var data = await http.get(apiUrl[0] + '/blocks?minHeight=${offset + 1}&maxHeight=${offset + limit}',
-        headers: {'Access-Control-Allow-Origin': apiUrl[1]});
-
-    var bodyData = json.decode(data.body);
-    if (!bodyData.containsKey("block_metas")) return;
-    var blocks = bodyData['block_metas'];
-
-    for (int i = 0; i < blocks.length; i++) {
-      var header = blocks[i]['header'];
-      Block block = Block(
-        blockSize: int.parse(blocks[i]['block_size']),
-        txAmount: int.parse(blocks[i]['num_txs']),
-        hash: blocks[i]['block_id']['hash'],
-        appHash: header['app_hash'],
-        chainId: header['chain_id'],
-        consensusHash: header['consensus_hash'],
-        dataHash: header['data_hash'],
-        evidenceHash: header['evidence_hash'],
-        height: int.parse(header['height']),
-        lastCommitHash: header['last_commit_hash'],
-        lastResultsHash: header['last_results_hash'],
-        nextValidatorsHash: header['next_validators_hash'],
-        proposerAddress: header['proposer_address'],
-        validatorsHash: header['validators_hash'],
-        time: DateTime.parse(header['time'] ?? DateTime.now().toString()),
-      );
+    var i = 1;
+    while (i < limit) {
+      if (!await checkModelExists(ModelType.BLOCK, (offset + i).toString()))
+        break;
+      var block = Block.fromJson(await getModel(ModelType.BLOCK, (offset + i).toString()));
       block.validator = await searchValidator(block.proposerAddress);
       blockList.add(block);
+      i++;
+    }
+
+    if (i < limit) {
+      var apiUrl = await loadInterxURL();
+      var data = await http.get(apiUrl[0] + '/blocks?minHeight=${offset + i}&maxHeight=${offset + limit}',
+          headers: {'Access-Control-Allow-Origin': apiUrl[1]});
+
+      var bodyData = json.decode(data.body);
+      if (!bodyData.containsKey("block_metas")) return;
+      var blocks = bodyData['block_metas'];
+
+      for (int i = 0; i < blocks.length; i++) {
+        Block block = Block.fromJson(blocks[i]);
+        block.validator = await searchValidator(block.proposerAddress);
+        blockList.add(block);
+        storeModels(ModelType.BLOCK, block.height.toString(), block.jsonString);
+      }
     }
 
     this.blocks.addAll(blockList);
@@ -224,6 +205,7 @@ class NetworkService {
         time: DateTime.parse(header['time'] ?? DateTime.now().toString()),
       );
       block.validator = await searchValidator(block.proposerAddress);
+      storeModels(ModelType.BLOCK, block.height.toString(), block.jsonString);
       await getTransactions(block.height);
     }
   }
@@ -231,7 +213,7 @@ class NetworkService {
   Future<void> getTransactions(int height) async {
     if (height < 0)
       this.transactions = List.empty();
-    else if (await checkTransactionsExists(height))
+    else if (await checkModelExists(ModelType.TRANSACTION, height.toString()))
       this.transactions = await getTransactionsForHeight(height);
     else {
       List<BlockTransaction> transactionList = [];
@@ -248,7 +230,8 @@ class NetworkService {
       }
 
       this.transactions = transactionList;
-      storeTransactions(height, transactionList);
+      storeModels(ModelType.TRANSACTION, height.toString(),
+          jsonEncode(transactionList.map((e) => e.jsonString).toList()));
     }
   }
 }
