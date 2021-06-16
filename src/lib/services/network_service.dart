@@ -141,6 +141,7 @@ class NetworkService {
         break;
       var block = Block.fromJson(await getModel(ModelType.BLOCK, (offset + i).toString()));
       block.validator = await searchValidator(block.proposerAddress);
+      if (block.validator == null) break;
       blockList.add(block);
       i++;
     }

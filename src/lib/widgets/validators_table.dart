@@ -262,6 +262,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
 
   Widget addRowBody(Validator validator) {
     final fieldWidth = ResponsiveWidget.isSmallScreen(context) ? 100.0 : 150.0;
+
     return Container(
         padding: EdgeInsets.all(10),
         child: Column(children: [

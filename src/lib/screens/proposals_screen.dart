@@ -261,7 +261,6 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
           Expanded(
             flex: 1,
             child: Text("Time",
-                maxLines: 3,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
           ),
@@ -279,11 +278,9 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
           children: [
             ProposalsTable(
               page: page,
-              setPage: (newPage) => {
-                this.setState(() {
-                  page = newPage;
-                })
-              },
+              setPage: (newPage) => this.setState(() {
+                page = newPage;
+              }),
               isFiltering: query.isNotEmpty,
               proposals: filteredProposals,
               voteable: voteable,
@@ -343,10 +340,9 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
 
     final stdTx = TransactionBuilder.buildStdTx([message], stdFee: fee, memo: 'Cancel transaction');
 
-    var result;
     try {
       final signedStdTx = await TransactionSigner.signStdTx(currentAccount, stdTx, accountNumber: cancelAccountNumber, sequence: cancelSequence);
-      result = await TransactionSender.broadcastStdTx(account: currentAccount, stdTx: signedStdTx);
+      await TransactionSender.broadcastStdTx(account: currentAccount, stdTx: signedStdTx);
     } catch (error) {
     }
     cancelAccountNumber = '';

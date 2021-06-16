@@ -51,7 +51,7 @@ class _HamburgerDrawerState extends State<HamburgerDrawer> {
           onTap: () {
             switch (i) {
               case 0: // account
-                Navigator.pushReplacementNamed(context, '/account');
+                Navigator.pushReplacementNamed(context, '/account' + (!isLoggedIn ? '?rpc=${statusService.rpcUrl}' : ''));
                 break;
               case 1: // Depost
                 Navigator.pushReplacementNamed(context, '/deposit');
@@ -60,10 +60,10 @@ class _HamburgerDrawerState extends State<HamburgerDrawer> {
                 Navigator.pushReplacementNamed(context, '/withdraw');
                 break;
               case 3: // Network
-                Navigator.pushReplacementNamed(context, '/network');
+                Navigator.pushReplacementNamed(context, '/network' + (!isLoggedIn ? '?rpc=${statusService.rpcUrl}' : ''));
                 break;
               case 4: // Proposals
-                Navigator.pushReplacementNamed(context, '/proposals');
+                Navigator.pushReplacementNamed(context, '/proposals' + (!isLoggedIn ? '?rpc=${statusService.rpcUrl}' : ''));
                 break;
               case 5: // Settings
                 Navigator.pushReplacementNamed(context, isLoggedIn ? '/settings' : '/login');

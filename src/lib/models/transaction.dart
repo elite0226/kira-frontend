@@ -1,5 +1,9 @@
+import 'dart:ui';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'dart:convert';
+import 'package:date_time_format/date_time_format.dart';
+import 'package:kira_auth/utils/colors.dart';
 
 part 'transaction.g.dart';
 
@@ -13,7 +17,7 @@ class Transaction {
   String amount;
   String gas;
   String status;
-  String timestamp;
+  DateTime time;
   String memo;
   bool isNew;
 
@@ -27,7 +31,7 @@ class Transaction {
     this.isNew,
     this.gas,
     this.status,
-    this.timestamp,
+    this.time,
     this.memo = "",
   });
 
@@ -36,4 +40,19 @@ class Transaction {
   Map<String, dynamic> toJson() => _$TransactionToJson(this);
 
   String toString() => jsonEncode(toJson());
+
+  String get getReducedHash => '0x$hash'.replaceRange(7, hash.length - 3, '....');
+  String get getReducedSender => sender.replaceRange(7, sender.length - 7, '....');
+  String get getReducedRecipient => recipient.replaceRange(7, sender.length - 7, '....');
+  String get getAmount => this.amount + ' ' + this.token;
+  String get getTimeString => time.relative(appendIfAfter: 'ago');
+
+  Color getStatusColor() {
+    switch (status) {
+      case 'success':
+        return KiraColors.green3;
+      default:
+        return KiraColors.kGrayColor;
+    }
+  }
 }

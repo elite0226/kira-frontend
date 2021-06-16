@@ -7,7 +7,6 @@ import 'package:kira_auth/utils/export.dart';
 import 'package:kira_auth/services/export.dart';
 import 'package:kira_auth/widgets/export.dart';
 import 'package:kira_auth/blocs/export.dart';
-import 'package:kira_auth/config.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -42,7 +41,6 @@ class _LoginScreenState extends State<LoginScreen> {
     rpcUrlNode = FocusNode();
     rpcUrlController = TextEditingController();
     getNodeStatus(true);
-    // getInterxRPCUrl();
     initializeValues();
   }
 
@@ -90,30 +88,6 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     }
-  }
-
-  // void checkNodeStatus() async {
-  //   if (mounted) {
-  //     try {
-  //       bool status = await statusService.checkNodeStatus();
-  //       setState(() {
-  //         isNetworkHealthy = status;
-  //         isLoading = false;
-  //         // isRpcError = !status;
-  //       });
-  //     } catch (e) {
-  //       setState(() {
-  //         isNetworkHealthy = false;
-  //         isLoading = false;
-  //         // isRpcError = true;
-  //       });
-  //     }
-  //   }
-  // }
-
-  void getInterxRPCUrl() async {
-    var apiUrl = await loadInterxURL();
-    rpcUrlController.text = apiUrl[0];
   }
 
   void disconnect() {
@@ -392,7 +366,7 @@ class _LoginScreenState extends State<LoginScreen> {
       style: 1,
       onPressed: () {
         setLoginStatus(false);
-        Navigator.pushReplacementNamed(context, '/account');
+        Navigator.pushReplacementNamed(context, '/account?rpc=$testedRpcUrl');
       },
     );
   }
