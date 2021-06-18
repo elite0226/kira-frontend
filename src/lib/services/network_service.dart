@@ -61,7 +61,7 @@ class NetworkService {
       validatorList.add(Validator.fromJson(validators[i]));
 
     this.validators.addAll(validatorList);
-    sortValidators();
+    // sortValidators();
     this.validators.sort((a, b) => a.top.compareTo(b.top));
   }
 
@@ -141,6 +141,7 @@ class NetworkService {
         break;
       var block = Block.fromJson(await getModel(ModelType.BLOCK, (offset + i).toString()));
       block.validator = await searchValidator(block.proposerAddress);
+      if (block.validator == null) break;
       blockList.add(block);
       i++;
     }

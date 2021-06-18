@@ -439,11 +439,9 @@ class _BlocksScreenState extends State<BlocksScreen> {
           children: [
             BlocksTable(
               page: page,
-              setPage: (newPage) => {
-                this.setState(() {
-                  page = newPage;
-                })
-              },
+              setPage: (newPage) => this.setState(() {
+                page = newPage;
+              }),
               totalPages: (networkService.latestBlockHeight / 5).ceil(),
               loadMore: () => getBlocks(false),
               blocks: blocks,
@@ -472,6 +470,7 @@ class _BlocksScreenState extends State<BlocksScreen> {
 
   Widget addBlockInfo() {
     final fieldWidth = ResponsiveWidget.isSmallScreen(context) ? 80.0 : 150.0;
+
     return Container(
       margin: EdgeInsets.only(top: 50),
       child: Column(

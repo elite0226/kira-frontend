@@ -1,4 +1,3 @@
-// import 'package:hex/hex.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:clipboard/clipboard.dart';
@@ -62,6 +61,9 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
 
   FocusNode memoFocusNode;
   TextEditingController memoController;
+  String expandedHash;
+  bool initialFetched = false;
+  int page = 1;
 
   @override
   void initState() {
@@ -129,6 +131,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
 
       setState(() {
         transactions = wTxs;
+        initialFetched = true;
       });
     }
   }
@@ -216,7 +219,12 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                                 ? addWithdrawalAmountSmall()
                                 : addWithdrawalAmountBig(),
                             // if (loading == true) addLoadingIndicator(),
-                            addWithdrawalTransactionsTable(),
+                            !initialFetched ? addLoadingIndicator() : transactions.isEmpty ? Container(
+                                margin: EdgeInsets.only(top: 20, left: 20),
+                                child: Text("No deposit transactions to show",
+                                    style: TextStyle(
+                                        color: KiraColors.white, fontSize: 18, fontWeight: FontWeight.bold)))
+                                : addTransactionsTable(),
                           ],
                         )),
                   ));
@@ -741,7 +749,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
         ));
   }
 
-  Widget addWithdrawalTransactionsTable() {
+  Widget addTransactionsTable() {
     return Container(
         margin: EdgeInsets.only(bottom: 50),
         child: Column(
@@ -754,7 +762,18 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
               style: TextStyle(color: KiraColors.white, fontSize: 20, fontWeight: FontWeight.w900),
             ),
             SizedBox(height: 30),
-            WithdrawalTransactionsTable(transactions: transactions)
+            TransactionsTable(
+              page: page,
+              setPage: (newPage) => this.setState(() {
+                page = newPage;
+              }),
+              isDeposit: false,
+              transactions: transactions,
+              expandedHash: expandedHash,
+              onTapRow: (hash) => this.setState(() {
+                expandedHash = hash;
+              }),
+            )
           ],
         ));
   }

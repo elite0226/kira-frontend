@@ -3,16 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:jdenticon_dart/jdenticon_dart.dart';
-// import 'package:kira_auth/helpers/tx_offline_signer.dart';
-// import 'package:kira_auth/helpers/tx_sender.dart';
 import 'package:kira_auth/models/export.dart';
 import 'package:kira_auth/models/transactions/messages/msg_send.dart';
 import 'package:kira_auth/models/transactions/std_coin.dart';
 import 'package:kira_auth/models/transactions/std_fee.dart';
 import 'package:kira_auth/utils/export.dart';
 import 'package:kira_auth/webcam/qr_code_scanner_web.dart';
-// import 'package:kira_auth/webcam/qr_code_scanner_web_impl.dart';
 
+// ignore: must_be_immutable
 class SignatureDialog extends StatefulWidget {
   MsgSend message;
   StdCoin feeV;

@@ -1,5 +1,7 @@
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:typed_data';
@@ -10,8 +12,6 @@ import 'package:kira_auth/blocs/export.dart';
 import 'package:kira_auth/models/export.dart';
 import 'package:convert/convert.dart';
 import 'package:kira_auth/config.dart';
-import 'dart:async';
-
 import 'package:qr_flutter/qr_flutter.dart';
 
 class TokenBalanceScreen extends StatefulWidget {
@@ -33,7 +33,6 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
   List<Token> tokens = [];
   List<String> faucetTokens = [];
   bool isNetworkHealthy = false;
-  int expandedIndex = -1;
   int sortIndex = 0;
   bool isAscending = true;
   bool isLoggedIn = false;
@@ -55,6 +54,10 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
   List<Transaction> withdrawTrx = [];
 
   final List _isHovering = [false, false, false];
+
+  String expandedHash;
+  String lastTxHash;
+  int page = 1;
 
   var apiUrl;
   var isSearchFinished = false;
@@ -88,7 +91,7 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
     if(lastSearchedAccount.isNotEmpty) {
       String rpc = this.apiUrl[0].toString().replaceAll("/api", "");
       rpc = rpc.replaceAll("http://", "");
-      Navigator.pushReplacementNamed(context, '/account?addr=${lastSearchedAccount}&type=${tabIndex}&rpc=${rpc}');
+      Navigator.pushReplacementNamed(context, '/account?addr=$lastSearchedAccount&type=$tabIndex&rpc=$rpc');
     }
   }
 
@@ -97,16 +100,15 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
     if(this.query.isNotEmpty) {
       String rpc = this.apiUrl[0].toString().replaceAll("/api", "");
       rpc = rpc.replaceAll("http://", "");
-      Navigator.pushReplacementNamed(context, '/account?addr=${query}&type=${tabIndex}&rpc=${rpc}');
+      Navigator.pushReplacementNamed(context, '/account?addr=$query&type=$tabIndex&rpc=$rpc');
     }
   }
-
 
   void navigate2NetworkScreen() async {
     if(query.isNotEmpty) {
       String rpc = this.apiUrl[0].toString().replaceAll("/api", "");
       rpc = rpc.replaceAll("http://", "");
-      Navigator.pushReplacementNamed(context, '/network?info=${query}&rpc=${rpc}');
+      Navigator.pushReplacementNamed(context, '/network?info=$query&rpc=$rpc');
     }
   }
 
@@ -114,7 +116,7 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
     if(query.isNotEmpty) {
       String rpc = this.apiUrl[0].toString().replaceAll("/api", "");
       rpc = rpc.replaceAll("http://", "");
-      Navigator.pushReplacementNamed(context, '/blocks?info=${query}&rpc=${rpc}');
+      Navigator.pushReplacementNamed(context, '/blocks?info=$query&rpc=$rpc');
     }
   }
 
@@ -153,7 +155,7 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
     apiUrl = await loadInterxURL();
   }
 
-  Future<bool> checkAddress() async {
+  Future<void> checkAddress() async {
     this.isSearchFinished = false;
 
     var uri = Uri.dataFromString(html.window.location.href); //converts string to a uri
@@ -246,20 +248,6 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
         });
       }
     }
-    //
-    // try {
-    //
-    //   final CosmosAccount cosmosAccount =
-    //   await QueryService.getAccountData(searchAccount);
-    //
-    //   if (cosmosAccount.address.isNotEmpty) {
-    //
-    //   }
-    //
-    // } catch (e) {
-    //   print(e);
-    //   isInValidAddress = true;
-    // }
   }
 
   getValidators(bool loadNew) async {
@@ -327,7 +315,6 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
   void initState() {
     super.initState();
 
-
     setTopbarIndex(0);
     setTopBarStatus(true);
 
@@ -378,40 +365,40 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: BlocConsumer<AccountBloc, AccountState>(
-            listener: (context, state) {},
-            builder: (context, state) {
-              return HeaderWrapper(
-                  isNetworkHealthy: isNetworkHealthy,
-                  childWidget: Container(
-                      alignment: Alignment.center,
-                      margin: EdgeInsets.only(top: 20, bottom: 50),
-                      padding: const EdgeInsets.symmetric(horizontal: 30),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: 1000),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            !isLoggedIn ? addSearchInput() : Container(),
-                            SizedBox(height: 30),
-                            !isTyping && query != "" ? addHeaderTitle() : Container(),
-                            isValidAddress ? addAccountAddress() : Container(),
-                            isValidAddress ? addAccountBalance() : Container(),
-                            isValidAddress ? Wrap(children: tabItems()) : Container(),
-                            (isLoggedIn || isValidAddress) && tabType == 2 ? addTableHeader() : Container(),
-                            isValidAddress && tabType == 0 ? addDepositTransactionsTable() : Container(),
-                            isValidAddress && tabType == 1 ? addWithdrawalTransactionsTable() : Container(),
-                            (isLoggedIn || (isValidAddress && tabType == 2)) ? (tokens.isEmpty)
-                                ? Container(
-                                    margin: EdgeInsets.only(top: 20, left: 20),
-                                    child: Text("No tokens",
-                                        style: TextStyle(
-                                            color: KiraColors.white, fontSize: 18, fontWeight: FontWeight.bold)))
-                                : addTokenTable() : Container(),
-                          ],
-                        ),
-                      )));
-            }));
+      body: BlocConsumer<AccountBloc, AccountState>(
+        listener: (context, state) {},
+        builder: (context, state) {
+          return HeaderWrapper(
+            isNetworkHealthy: isNetworkHealthy,
+            childWidget: Container(
+              alignment: Alignment.center,
+              margin: EdgeInsets.only(top: 20, bottom: 50),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 1000),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    !isLoggedIn ? addSearchInput() : Container(),
+                    SizedBox(height: 10),
+                    !isTyping && query != "" ? addHeaderTitle() : Container(),
+                    isValidAddress ? addAccountAddress() : Container(),
+                    isValidAddress ? addAccountBalance() : Container(),
+                    isValidAddress ? Wrap(children: tabItems()) : Container(),
+                    isValidAddress && tabType == 0 ? Align(alignment: Alignment.center, child: qrCode()) : Container(),
+                    (isLoggedIn || isValidAddress) ? addTableHeader() : Container(),
+                    isValidAddress && tabType < 2 ? addTransactionsTable() : Container(),
+                    (isLoggedIn || (isValidAddress && tabType == 2)) ? (tokens.isEmpty)
+                      ? Container(
+                        margin: EdgeInsets.only(top: 20, left: 20),
+                        child: Text("No tokens",
+                          style: TextStyle(
+                            color: KiraColors.white, fontSize: 18, fontWeight: FontWeight.bold)))
+                    : addTokenTable() : Container(),
+                  ],
+                ),
+              )));
+        }));
   }
 
   Widget qrCode() {
@@ -477,73 +464,54 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
 
   Widget addHeaderTitle() {
     return Container(
-        margin: EdgeInsets.only(bottom: 40),
-        child: Text(
-          isSearchFinished ? isValidAddress ? "" : Strings.searchFailed : "",
-          textAlign: TextAlign.left,
-          style: TextStyle(color: KiraColors.white, fontSize: 30, fontWeight: FontWeight.w900),
-        ));
-  }
-
-  Widget addTokenBalanceTable(BuildContext context) {
-    return Container(
-        margin: EdgeInsets.only(bottom: 50),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              Strings.tokens,
-              textAlign: TextAlign.start,
-              style: TextStyle(color: KiraColors.white, fontSize: 20, fontWeight: FontWeight.w900),
-            ),
-            SizedBox(height: 20),
-            TokenBalancesTable(tokens: tokens),
-          ],
-        ));
+      margin: EdgeInsets.only(bottom: 10),
+      child: Text(
+        isSearchFinished ? isValidAddress ? "" : Strings.searchFailed : "",
+        textAlign: TextAlign.left,
+        style: TextStyle(color: KiraColors.white, fontSize: 30, fontWeight: FontWeight.w900),
+      ));
   }
 
   Widget faucetTokenList() {
     return Container(
-        decoration: BoxDecoration(
-            border: Border.all(width: 2, color: KiraColors.kPurpleColor),
-            color: KiraColors.transparent,
-            borderRadius: BorderRadius.circular(9)),
-        // dropdown below..
-        child: DropdownButtonHideUnderline(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-              Container(
-                padding: EdgeInsets.only(top: 10, left: 15, bottom: 0),
-                child: Text(Strings.faucetTokens, style: TextStyle(color: KiraColors.kGrayColor, fontSize: 12)),
-              ),
-              ButtonTheme(
-                alignedDropdown: true,
-                child: DropdownButton<String>(
-                    dropdownColor: KiraColors.kPurpleColor,
-                    value: faucetToken,
-                    icon: Icon(Icons.arrow_drop_down),
-                    iconSize: 32,
-                    underline: SizedBox(),
-                    onChanged: (String tokenName) {
-                      setState(() {
-                        faucetToken = tokenName;
-                      });
-                    },
-                    items: faucetTokens.map<DropdownMenuItem<String>>((String token) {
-                      return DropdownMenuItem<String>(
-                        value: token,
-                        child: Container(
-                            height: 25,
-                            alignment: Alignment.topCenter,
-                            child: Text(Tokens.getTokenFromDenom(token),
-                                style: TextStyle(color: KiraColors.white, fontSize: 18))),
-                      );
-                    }).toList()),
-              )
-            ])));
+      decoration: BoxDecoration(
+        border: Border.all(width: 2, color: KiraColors.kPurpleColor),
+        color: KiraColors.transparent,
+        borderRadius: BorderRadius.circular(9)),
+      child: DropdownButtonHideUnderline(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: EdgeInsets.only(top: 10, left: 15, bottom: 0),
+              child: Text(Strings.faucetTokens, style: TextStyle(color: KiraColors.kGrayColor, fontSize: 12)),
+            ),
+            ButtonTheme(
+              alignedDropdown: true,
+              child: DropdownButton<String>(
+                dropdownColor: KiraColors.kPurpleColor,
+                value: faucetToken,
+                icon: Icon(Icons.arrow_drop_down),
+                iconSize: 32,
+                underline: SizedBox(),
+                onChanged: (String tokenName) {
+                  setState(() {
+                    faucetToken = tokenName;
+                  });
+                },
+                items: faucetTokens.map<DropdownMenuItem<String>>((String token) {
+                  return DropdownMenuItem<String>(
+                    value: token,
+                    child: Container(
+                      height: 25,
+                      alignment: Alignment.topCenter,
+                      child: Text(Tokens.getTokenFromDenom(token),
+                        style: TextStyle(color: KiraColors.white, fontSize: 18))),
+                 );
+                }).toList()),
+          )
+        ])));
   }
 
   Widget faucetTokenLayoutSmall() {
@@ -613,12 +581,12 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
                 alignment: AlignmentDirectional(0, 0),
                 margin: EdgeInsets.only(top: 3),
                 child: Text(notification,
-                    style: TextStyle(
-                      fontSize: 15.0,
-                      color: notification != "Success!" ? KiraColors.kYellowColor.withOpacity(0.6) : KiraColors.green3,
-                      fontFamily: 'NunitoSans',
-                      fontWeight: FontWeight.w600,
-                    )),
+                  style: TextStyle(
+                    fontSize: 15.0,
+                    color: notification != "Success!" ? KiraColors.kYellowColor.withOpacity(0.6) : KiraColors.green3,
+                    fontFamily: 'NunitoSans',
+                    fontWeight: FontWeight.w600,
+                  )),
               ),
           ],
         ));
@@ -632,8 +600,8 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text("Address",
-                style:
-                TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+              style:
+              TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
             InkWell(
               onTap: () {
                 copyText(currentAccount.bech32Address);
@@ -641,15 +609,15 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
               },
               child: // Flexible(
               Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(currentAccount.getReducedBechAddress,
-                        textAlign: TextAlign.end,
-                        style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                    SizedBox(width: 5),
-                      Image.asset(Strings.copyImage, width:20, height:20, fit: BoxFit.fitWidth),
-                  ],
-                ))
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(currentAccount.getReducedBechAddress,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+                  SizedBox(width: 5),
+                  Icon(Icons.copy, size: 20, color: KiraColors.white),
+                ],
+              ))
           ]
         )
     );
@@ -657,20 +625,19 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
 
   Widget addAccountBalance() {
     return Container(
-        padding: EdgeInsets.all(5),
-        margin: EdgeInsets.only(right: ResponsiveWidget.isSmallScreen(context) ? 40 : 65, bottom: 20),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Balance (KEX)",
-                  style:
-                  TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-
-              Text(this.kexBalance.toString(),
-                  style:
-                  TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-            ]
-        )
+      padding: EdgeInsets.all(5),
+      margin: EdgeInsets.only(right: ResponsiveWidget.isSmallScreen(context) ? 40 : 65, bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Balance (KEX)",
+            style:
+            TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(this.kexBalance.toString(),
+            style:
+            TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+        ]
+      )
     );
   }
 
@@ -687,47 +654,39 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
             });
           },
           onTap: () {
-            switch (i) {
-              case 0: // Deposit
-                this.tabType = 0;
-                break;
-              case 1: // Withdrawal
-                this.tabType = 1;
-                break;
-              case 2: // Tokens
-                this.tabType = 2;
-                break;
-            }
-
+            this.tabType = i;
+            sortIndex = 0;
+            isAscending = true;
+            lastTxHash = '';
             setTabIndex(this.tabType);
             showSearchedAccount();
           },
           child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  Strings.tabItemTitles[i],
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: _isHovering[i] || i == this.tabType ? KiraColors.kYellowColor : KiraColors.kGrayColor,
-                    ),
-                ),
-                SizedBox(height: 5),
-                Visibility(
-                  maintainAnimation: true,
-                  maintainState: true,
-                  maintainSize: true,
-                  visible: _isHovering[i],
-                  child: Container(
-                    alignment: Alignment.centerLeft,
-                    height: 3,
-                    width: 30,
-                    color: KiraColors.kYellowColor,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                Strings.tabItemTitles[i],
+                style: TextStyle(
+                  fontSize: 15,
+                  color: _isHovering[i] || i == this.tabType ? KiraColors.kYellowColor : KiraColors.kGrayColor,
                   ),
+              ),
+              SizedBox(height: 5),
+              Visibility(
+                maintainAnimation: true,
+                maintainState: true,
+                maintainSize: true,
+                visible: _isHovering[i],
+                child: Container(
+                  alignment: Alignment.centerLeft,
+                  height: 3,
+                  width: 30,
+                  color: KiraColors.kYellowColor,
                 ),
-              ]),
+              ),
+            ]),
         ),
       ));
     }
@@ -735,111 +694,61 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
     return items;
   }
 
-  Widget addDepositTransactionsTable() {
+  Widget addTransactionsTable() {
     return Container(
-        margin: EdgeInsets.only(bottom: 50),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Align(
-              alignment: Alignment.center,
-              child: qrCode(),
-            ),
-            SizedBox(height: 30),
-            Text(
-              Strings.depositTransactions,
-              textAlign: TextAlign.start,
-              style: TextStyle(color: KiraColors.white, fontSize: 20, fontWeight: FontWeight.w900),
-            ),
-            SizedBox(height: 20),
-            DepositTransactionsTable(transactions: depositTrx)
-          ],
-        ));
-  }
-
-  Widget addWithdrawalTransactionsTable() {
-    return Container(
-        margin: EdgeInsets.only(bottom: 50),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              Strings.withdrawalTransactions,
-              textAlign: TextAlign.start,
-              style: TextStyle(color: KiraColors.white, fontSize: 20, fontWeight: FontWeight.w900),
-            ),
-            SizedBox(height: 30),
-            WithdrawalTransactionsTable(transactions: withdrawTrx)
-          ],
-        ));
+      margin: EdgeInsets.only(bottom: 50),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TransactionsTable(
+            page: page,
+            setPage: (newPage) => this.setState(() {
+              page = newPage;
+            }),
+            isDeposit: tabType == 0,
+            transactions: tabType == 0 ? depositTrx : withdrawTrx,
+            expandedHash: expandedHash,
+            onTapRow: (hash) => this.setState(() {
+              expandedHash = hash;
+            }),
+          )
+        ],
+      ));
   }
 
   Widget addTableHeader() {
+    List<String> titles = tabType < 2 ? ['Tx Hash', ['Sender', 'Recipient'][tabType], 'Amount', 'Time', 'Status'] : ['Token Name', 'Balance'];
+    List<int> flexes = tabType < 2 ? [2, 2, 1, 1, 1] : [1, 1];
+
     return Container(
       padding: EdgeInsets.all(5),
-      margin: EdgeInsets.only(right: ResponsiveWidget.isSmallScreen(context) ? 40 : 65, bottom: 20),
-      child: Row(
-        children: [
-          Expanded(
-              flex: ResponsiveWidget.isSmallScreen(context) ? 3 : 2,
-              child: InkWell(
-                  onTap: () => this.setState(() {
-                        if (sortIndex == 0)
-                          isAscending = !isAscending;
-                        else {
-                          sortIndex = 0;
-                          isAscending = true;
-                        }
-                        expandedIndex = -1;
-                        refreshTableSort();
-                      }),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: sortIndex != 0
-                        ? [
-                            Text("Token Name",
-                                style:
-                                    TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                          ]
-                        : [
-                            Text("Token Name",
-                                style:
-                                    TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                            SizedBox(width: 5),
-                            Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
-                          ],
-                  ))),
-          Expanded(
-              flex: 2,
-              child: InkWell(
-                  onTap: () => this.setState(() {
-                        if (sortIndex == 1)
-                          isAscending = !isAscending;
-                        else {
-                          sortIndex = 1;
-                          isAscending = true;
-                        }
-                        expandedIndex = -1;
-                        refreshTableSort();
-                      }),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: sortIndex != 1
-                          ? [
-                              Text("Balance",
-                                  style: TextStyle(
-                                      color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                            ]
-                          : [
-                              Text("Balance",
-                                  style: TextStyle(
-                                      color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                              SizedBox(width: 5),
-                              Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
-                            ]))),
-        ],
+      margin: EdgeInsets.only(top: 30, right: 40, bottom: 20),
+      child: Row(children:
+        titles.asMap().map((index, title) => MapEntry(index, Expanded(
+          flex: flexes[index],
+          child: InkWell(
+            onTap: () => this.setState(() {
+              if (sortIndex == index)
+                isAscending = !isAscending;
+              else {
+                sortIndex = index;
+                isAscending = true;
+              }
+              expandedHash = '';
+              refreshTableSort();
+            }),
+            child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+              children: sortIndex != index ? [
+                Text(title, style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+              ] : [
+                Text(title, style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+                SizedBox(width: 5),
+                Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
+              ],
+          )))),
+        ).values.toList(),
       ),
     );
   }
@@ -852,12 +761,16 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TokenTable(
+              page: page,
+              setPage: (newPage) => this.setState(() {
+                page = newPage;
+              }),
               tokens: tokens,
               address: this.query,
-              expandedIndex: expandedIndex,
+              expandedName: expandedHash,
               isLoggedIn: isLoggedIn,
-              onTapRow: (index) => this.setState(() {
-                expandedIndex = index;
+              onTapRow: (name) => this.setState(() {
+                expandedHash = name;
               }),
             ),
           ],
@@ -867,9 +780,22 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
   refreshTableSort() {
     this.setState(() {
       if (sortIndex == 0) {
+        depositTrx.sort((a, b) => isAscending ? a.hash.compareTo(b.hash) : b.hash.compareTo(a.hash));
+        withdrawTrx.sort((a, b) => isAscending ? a.hash.compareTo(b.hash) : b.hash.compareTo(a.hash));
         tokens.sort((a, b) => isAscending ? a.assetName.compareTo(b.assetName) : b.assetName.compareTo(a.assetName));
       } else if (sortIndex == 1) {
+        depositTrx.sort((a, b) => isAscending ? a.sender.compareTo(b.sender) : b.sender.compareTo(a.sender));
+        withdrawTrx.sort((a, b) => isAscending ? a.recipient.compareTo(b.recipient) : b.sender.compareTo(a.recipient));
         tokens.sort((a, b) => isAscending ? a.balance.compareTo(b.balance) : b.balance.compareTo(a.balance));
+      } else if (sortIndex == 2) {
+        depositTrx.sort((a, b) => isAscending ? a.amount.compareTo(b.amount) : b.amount.compareTo(a.amount));
+        withdrawTrx.sort((a, b) => isAscending ? a.amount.compareTo(b.amount) : b.amount.compareTo(a.amount));
+      } else if (sortIndex == 3) {
+        depositTrx.sort((a, b) => isAscending ? a.time.compareTo(b.time) : b.time.compareTo(a.time));
+        withdrawTrx.sort((a, b) => isAscending ? a.time.compareTo(b.time) : b.time.compareTo(a.time));
+      } else {
+        depositTrx.sort((a, b) => isAscending ? a.status.compareTo(b.status) : b.status.compareTo(a.status));
+        withdrawTrx.sort((a, b) => isAscending ? a.status.compareTo(b.status) : b.status.compareTo(a.status));
       }
     });
   }

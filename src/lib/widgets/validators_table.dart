@@ -189,7 +189,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
                     Expanded(
                         flex: ResponsiveWidget.isSmallScreen(context) ? 3 : 2,
                         child: Text(
-                          "${validator.top}.",
+                          "${validator.top + 1}.",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: KiraColors.white.withOpacity(0.8),
@@ -262,6 +262,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
 
   Widget addRowBody(Validator validator) {
     final fieldWidth = ResponsiveWidget.isSmallScreen(context) ? 100.0 : 150.0;
+
     return Container(
         padding: EdgeInsets.all(10),
         child: Column(children: [

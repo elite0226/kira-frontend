@@ -160,8 +160,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
                             moreLoading ? addLoadingIndicator() : filteredValidators.isEmpty ? Container(
                                 margin: EdgeInsets.only(top: 20, left: 20),
                                 child: Text("No validators to show",
-                                    style: TextStyle(
-                                        color: KiraColors.white, fontSize: 18, fontWeight: FontWeight.bold)))
+                                    style: TextStyle(color: KiraColors.white, fontSize: 18, fontWeight: FontWeight.bold)))
                                 : addValidatorsTable(),
                           ],
                         ),
@@ -186,15 +185,13 @@ class _NetworkScreenState extends State<NetworkScreen> {
   Widget addHeader() {
     return Container(
       margin: EdgeInsets.only(bottom: 40),
-      child: ResponsiveWidget.isLargeScreen(context)
-          ? Row(
+      child: ResponsiveWidget.isLargeScreen(context) ? Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           addHeaderTitle(),
           addSearchInput(),
         ],
-      )
-          : Column(
+      ) : Column(
         children: <Widget>[
           addHeaderTitle(),
           addSearchInput(),
@@ -215,15 +212,11 @@ class _NetworkScreenState extends State<NetworkScreen> {
             )),
         SizedBox(width: 30),
         InkWell(
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/blocks');
-            },
+            onTap: () => Navigator.pushReplacementNamed(context, '/blocks'),
             child: Icon(Icons.swap_horiz, color: KiraColors.white.withOpacity(0.8))),
         SizedBox(width: 10),
         InkWell(
-          onTap: () {
-            Navigator.pushReplacementNamed(context, '/blocks');
-          },
+          onTap: () => Navigator.pushReplacementNamed(context, '/blocks'),
           child: Container(
               child: Text(
                 Strings.blocks,
@@ -272,8 +265,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
     return Container(
         padding: EdgeInsets.all(5),
         margin: EdgeInsets.only(right: 40, bottom: 20),
-        child: Row(
-            children: [
+        child: Row(children: [
             Expanded(
             flex: 2,
             child: InkWell(
@@ -289,16 +281,12 @@ class _NetworkScreenState extends State<NetworkScreen> {
                 }),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: sortIndex != 3
-                    ? [
+                    children: sortIndex != 3 ? [
                     Text("Status",
-                        style: TextStyle(
-                            color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-                    ]
-                        : [
-                    Text("Status",
-                    style: TextStyle(
-                color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+                    ] : [
+                Text("Status",
+                style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
             SizedBox(width: 5),
             Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
             ]))),
@@ -317,20 +305,15 @@ class _NetworkScreenState extends State<NetworkScreen> {
     }),
     child: Row(
     mainAxisAlignment: MainAxisAlignment.center,
-    children: sortIndex != 0
-    ? [
+    children: sortIndex != 0 ? [
     Text("Rank",
-    style:
-    TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
-    ]
-        : [
+    style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+    ] : [
     Text("Rank",
-    style:
-    TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+    style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
     SizedBox(width: 5),
     Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
-    ],
-    ))),
+    ]))),
     Expanded(
     flex: 3,
     child: InkWell(
@@ -409,11 +392,9 @@ class _NetworkScreenState extends State<NetworkScreen> {
               isLoggedIn: isLoggedIn,
               isFiltering: query.isNotEmpty,
               page: page,
-              setPage: (newPage) => {
-                this.setState(() {
-                  page = newPage;
-                })
-              },
+              setPage: (newPage) => this.setState(() {
+                page = newPage;
+              }),
               totalPages: (networkService.totalCount / 5).ceil(),
               loadMore: () => getValidators(false),
               totalValidators: validators,

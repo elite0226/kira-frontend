@@ -110,6 +110,8 @@ class _BlocksTableState extends State<BlocksTable> {
   }
 
   Widget addNavigateControls() {
+    var totalPages = widget.totalPages;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -122,13 +124,13 @@ class _BlocksTableState extends State<BlocksTable> {
             color: widget.page > 1 ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2),
           ),
         ),
-        Text("${widget.page} / ${widget.totalPages}", style: TextStyle(fontSize: 16, color: KiraColors.white, fontWeight: FontWeight.bold)),
+        Text("${widget.page} / $totalPages", style: TextStyle(fontSize: 16, color: KiraColors.white, fontWeight: FontWeight.bold)),
         IconButton(
-          onPressed: widget.page < widget.totalPages ? () => setPage(newPage: widget.page + 1) : null,
+          onPressed: widget.page < totalPages ? () => setPage(newPage: widget.page + 1) : null,
           icon: Icon(
               Icons.arrow_forward_ios,
               size: 20,
-              color: widget.page < widget.totalPages ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2)
+              color: widget.page < totalPages ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2)
           ),
         ),
       ],

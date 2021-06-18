@@ -23,7 +23,7 @@ class TopBarContents extends StatefulWidget {
 class _TopBarContentsState extends State<TopBarContents> {
   StatusService statusService = StatusService();
   final List _isHovering = [false, false, false, false, false, false, false, false, false, false];
-  final List _NotSearched = [true, false, false, true, true, true];
+  final List _notSearched = [true, false, false, true, true, true];
 
   bool _isProcessing = false;
   String networkId = Strings.noAvailableNetworks;
@@ -54,7 +54,7 @@ class _TopBarContentsState extends State<TopBarContents> {
     List<Widget> items = [];
 
     for (int i = 0; i < 6; i++) {
-      if (!widget._loggedIn ? _NotSearched[i] : true)
+      if (!widget._loggedIn ? _notSearched[i] : true)
         items.add(Container(
         margin: EdgeInsets.only(left: 30, right: 30, top: 10),
           child: InkWell(
@@ -67,7 +67,7 @@ class _TopBarContentsState extends State<TopBarContents> {
               setTopbarIndex(i);
               switch (i) {
                 case 0: // Acount
-                  Navigator.pushReplacementNamed(context, '/account');
+                  Navigator.pushReplacementNamed(context, '/account' + (!widget._loggedIn ? '?rpc=${statusService.rpcUrl}' : ''));
                   break;
                 case 1: // Deposit
                   Navigator.pushReplacementNamed(context, '/deposit');
@@ -76,16 +76,13 @@ class _TopBarContentsState extends State<TopBarContents> {
                   Navigator.pushReplacementNamed(context, '/withdraw');
                   break;
                 case 3: // Network
-                  Navigator.pushReplacementNamed(context, '/network');
+                  Navigator.pushReplacementNamed(context, '/network' + (!widget._loggedIn ? '?rpc=${statusService.rpcUrl}' : ''));
                   break;
                 case 4: // Proposals
-                  Navigator.pushReplacementNamed(context, '/proposals');
+                  Navigator.pushReplacementNamed(context, '/proposals' + (!widget._loggedIn ? '?rpc=${statusService.rpcUrl}' : ''));
                   break;
                 case 5: // Settings
-                  // BlocProvider.of<NetworkBloc>(context).add(SetNetworkInfo(Strings.customNetwork, ""));
-                  // removePassword();
-                  // setInterxRPCUrl("");
-                  Navigator.pushReplacementNamed(context, '/settings');
+                  Navigator.pushReplacementNamed(context, widget._loggedIn ? '/settings' : '/login');
                   break;
               }
             },
