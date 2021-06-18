@@ -111,8 +111,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
         if (statusService.nodeInfo != null && statusService.nodeInfo.network.isNotEmpty) {
           isNetworkHealthy = statusService.isNetworkHealthy;
 
-          BlocProvider.of<NetworkBloc>(context)
-              .add(SetNetworkInfo(statusService.nodeInfo.network, statusService.rpcUrl));
+          BlocProvider.of<NetworkBloc>(context).add(SetNetworkInfo(statusService.nodeInfo.network, statusService.rpcUrl));
         } else {
           isNetworkHealthy = false;
         }
@@ -122,8 +121,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
 
   void getWithdrawalTransactions() async {
     if (currentAccount != null) {
-      List<Transaction> wTxs =
-          await transactionService.getTransactions(account: currentAccount, max: 100, isWithdrawal: true);
+      List<Transaction> wTxs = await transactionService.getTransactions(account: currentAccount, max: 100, isWithdrawal: true);
 
       setState(() {
         transactions = wTxs;
@@ -210,9 +208,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                             if (currentToken == null) addDescription(),
                             ResponsiveWidget.isSmallScreen(context) ? addFirstLineSmall() : addFirstLineBig(),
                             ResponsiveWidget.isSmallScreen(context) ? addSecondLineSmall() : addSecondLineBig(),
-                            ResponsiveWidget.isSmallScreen(context)
-                                ? addWithdrawalAmountSmall()
-                                : addWithdrawalAmountBig(),
+                            ResponsiveWidget.isSmallScreen(context) ? addWithdrawalAmountSmall() : addWithdrawalAmountBig(),
                             // if (loading == true) addLoadingIndicator(),
                             addWithdrawalTransactionsTable(),
                           ],
@@ -243,10 +239,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
 
   Widget addToken() {
     return Container(
-        decoration: BoxDecoration(
-            border: Border.all(width: 2, color: KiraColors.kPurpleColor),
-            color: KiraColors.transparent,
-            borderRadius: BorderRadius.circular(9)),
+        decoration: BoxDecoration(border: Border.all(width: 2, color: KiraColors.kPurpleColor), color: KiraColors.transparent, borderRadius: BorderRadius.circular(9)),
         // dropdown below..
         child: DropdownButtonHideUnderline(
           child: Column(
@@ -276,10 +269,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                     items: tokens.map<DropdownMenuItem<String>>((Token token) {
                       return DropdownMenuItem<String>(
                         value: token.ticker,
-                        child: Container(
-                            height: 25,
-                            alignment: Alignment.topCenter,
-                            child: Text(token.ticker, style: TextStyle(color: KiraColors.white, fontSize: 18))),
+                        child: Container(height: 25, alignment: Alignment.topCenter, child: Text(token.ticker, style: TextStyle(color: KiraColors.white, fontSize: 18))),
                       );
                     }).toList()),
               ),
@@ -315,9 +305,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
 
         if (double.tryParse(text) < 0.25 || percent > 100) {
           setState(() {
-            amountError = percent > 100
-                ? Strings.withdrawalAmountOutOrRange
-                : "Amount to withdraw must be at least 0.05000000 " + ticker;
+            amountError = percent > 100 ? Strings.withdrawalAmountOutOrRange : "Amount to withdraw must be at least 0.05000000 " + ticker;
             withdrawalAmount = 0;
           });
           return;
@@ -402,13 +390,9 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Transaction Fee: " + feeAmount + " " + ticker,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: KiraColors.kGrayColor)),
+          Text("Transaction Fee: " + feeAmount + " " + ticker, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: KiraColors.kGrayColor)),
           Text(
-            withdrawalAmount > txFee
-                ? 'You Will Get: ' + (withdrawalAmount - txFee).toStringAsFixed(6) + " " + ticker
-                : 'You Will Get: 0.000000 ' + ticker,
+            withdrawalAmount > txFee ? 'You Will Get: ' + (withdrawalAmount - txFee).toStringAsFixed(6) + " " + ticker : 'You Will Get: 0.000000 ' + ticker,
             textAlign: TextAlign.left,
             style: TextStyle(
               fontSize: 12,
@@ -439,19 +423,13 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
         child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              addWithdrawalAmount(),
-              addTransactionHashResult(),
-              SizedBox(height: 30),
-              addWithdrawButton(false)
-            ]));
+            children: [addWithdrawalAmount(), addTransactionHashResult(), SizedBox(height: 30), addWithdrawButton(false)]));
   }
 
   Widget addGravatar(BuildContext context) {
     // final String gravatar = gravatarService.getIdenticon(currentAccount != null ? currentAccount.bech32Address : "");
 
-    final String reducedAddress =
-        currentAccount.bech32Address.replaceRange(10, currentAccount.bech32Address.length - 7, '....');
+    final String reducedAddress = currentAccount.bech32Address.replaceRange(10, currentAccount.bech32Address.length - 7, '....');
 
     return Container(
         margin: EdgeInsets.only(bottom: 30),
@@ -548,13 +526,10 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
               loading = true;
             });
 
-            final message = MsgSend(
-                fromAddress: currentAccount.bech32Address,
-                toAddress: addressController.text.trim(),
-                amount: [StdCoin(denom: denomination, amount: withdrawalAmount.toString())]);
+            final message = MsgSend(fromAddress: currentAccount.bech32Address, toAddress: addressController.text.trim(), amount: [StdCoin(denom: denomination, amount: withdrawalAmount.toString())]);
 
             final feeV = StdCoin(amount: feeAmount, denom: feeToken.denomination);
-            final fee = StdFee(gas: '200000', amount: [feeV]);
+            final fee = StdFee(gas: '999999', amount: [feeV]);
 
             // Structure and organize the transcation
             final stdTx = TransactionBuilder.buildStdTx([message], stdFee: fee, memo: memoController.text);
@@ -569,6 +544,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
               setState(() {
                 transactionResult = Strings.invalidRequest;
                 transactionHash = "";
+                loading = false;
               });
             } else if (result['height'] == "0") {
               // print("Tx send error: " + result['check_tx']['log']);
@@ -576,6 +552,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                 setState(() {
                   transactionResult = Strings.invalidRequest;
                   transactionHash = "";
+                  loading = false;
                 });
               }
             } else {
@@ -586,6 +563,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                 amountController.text = "";
                 addressController.text = "";
                 memoController.text = "";
+                loading = false;
               });
               getNewTransaction("0x" + result['hash']);
             }
@@ -595,8 +573,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
             top: 0,
             right: 0,
             child: ClipRRect(
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(50), bottomLeft: Radius.circular(50), bottomRight: Radius.circular(50)),
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(50), bottomLeft: Radius.circular(50), bottomRight: Radius.circular(50)),
               child: Container(
                   color: Color.fromRGBO(31, 23, 76, 1),
                   child: IconButton(
@@ -626,18 +603,15 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                         loading = true;
                       });
 
-                      final message = MsgSend(
-                          fromAddress: currentAccount.bech32Address,
-                          toAddress: addressController.text.trim(),
-                          amount: [StdCoin(denom: denomination, amount: withdrawalAmount.toString())]);
+                      final message =
+                          MsgSend(fromAddress: currentAccount.bech32Address, toAddress: addressController.text.trim(), amount: [StdCoin(denom: denomination, amount: withdrawalAmount.toString())]);
 
                       final feeV = StdCoin(amount: feeAmount, denom: feeToken.denomination);
                       final fee = StdFee(gas: '200000', amount: [feeV]);
 
                       final stdTx = TransactionBuilder.buildStdTx([message], stdFee: fee, memo: memoController.text);
 
-                      final Map<String, dynamic> sortedJson =
-                          await TransactionOfflineSigner.getOnlineInformation(currentAccount, stdTx);
+                      final Map<String, dynamic> sortedJson = await TransactionOfflineSigner.getOnlineInformation(currentAccount, stdTx);
                       var qrData = json.encode(sortedJson);
                       dynamic processTranscation = await showDialog(
                           useRootNavigator: false,
@@ -684,18 +658,16 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                       var signature = json.decode(data);
 
                       // Structures and creates the transcation structure
-                      StdPublicKey stdPublicKey =
-                          StdPublicKey(key: signature['publicKey']['value'], type: signature['publicKey']['type']);
+                      StdPublicKey stdPublicKey = StdPublicKey(key: signature['publicKey']['value'], type: signature['publicKey']['type']);
                       Map<String, dynamic> map = {'signature': signature['signature'], 'publicKey': stdPublicKey};
-                      final signOfflineStdTx =
-                          await TransactionOfflineSigner.signOfflineStdTx(currentAccount, stdTx, map);
-                      final result =
-                          await TransactionSender.broadcastStdTx(account: currentAccount, stdTx: signOfflineStdTx);
+                      final signOfflineStdTx = await TransactionOfflineSigner.signOfflineStdTx(currentAccount, stdTx, map);
+                      final result = await TransactionSender.broadcastStdTx(account: currentAccount, stdTx: signOfflineStdTx);
 
                       if (result == false) {
                         setState(() {
                           transactionResult = Strings.invalidRequest;
                           transactionHash = "";
+                          loading = false;
                         });
                       } else if (result['height'] == "0") {
                         // print("Tx send error: " + result['check_tx']['log']);
@@ -703,6 +675,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                           setState(() {
                             transactionResult = Strings.invalidRequest;
                             transactionHash = "";
+                            loading = false;
                           });
                         }
                       } else {
@@ -714,6 +687,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                           amountController.text = "";
                           addressController.text = "";
                           memoController.text = "";
+                          loading = false;
                         });
                         getNewTransaction("0x" + result['hash']);
                       }
@@ -726,13 +700,10 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
 
   Widget addLoadingIndicator() {
     return Container(
-        margin: EdgeInsets.only(bottom: 10, top: 10),
         alignment: Alignment.center,
         child: Container(
-          width: 40,
-          height: 40,
-          margin: EdgeInsets.symmetric(vertical: 0, horizontal: 30),
-          padding: EdgeInsets.all(0),
+          width: 20,
+          height: 20,
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
           ),
@@ -792,6 +763,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                   ),
               ],
             ),
+            if (loading == true) addLoadingIndicator(),
           ],
         ));
   }
@@ -843,28 +815,22 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
   Widget addFirstLineSmall() {
     return Container(
       margin: EdgeInsets.only(bottom: 30),
-      child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            addToken(),
-            SizedBox(height: 30),
-            addWithdrawalAddress(),
-          ]),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+        addToken(),
+        SizedBox(height: 30),
+        addWithdrawalAddress(),
+      ]),
     );
   }
 
   Widget addFirstLineBig() {
     return Container(
       margin: EdgeInsets.only(bottom: 30),
-      child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Expanded(child: addToken(), flex: 1),
-            SizedBox(width: 60),
-            Expanded(child: addWithdrawalAddress(), flex: 1),
-          ]),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+        Expanded(child: addToken(), flex: 1),
+        SizedBox(width: 60),
+        Expanded(child: addWithdrawalAddress(), flex: 1),
+      ]),
     );
   }
 
@@ -927,28 +893,22 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
   Widget addSecondLineSmall() {
     return Container(
       margin: EdgeInsets.only(bottom: 30),
-      child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            addWithdrawalAmountInput(),
-            SizedBox(height: 30),
-            addMemo(),
-          ]),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+        addWithdrawalAmountInput(),
+        SizedBox(height: 30),
+        addMemo(),
+      ]),
     );
   }
 
   Widget addSecondLineBig() {
     return Container(
       margin: EdgeInsets.only(bottom: 30),
-      child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Expanded(child: addWithdrawalAmountInput(), flex: 1),
-            SizedBox(width: 60),
-            Expanded(child: addMemo(), flex: 1),
-          ]),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+        Expanded(child: addWithdrawalAmountInput(), flex: 1),
+        SizedBox(width: 60),
+        Expanded(child: addMemo(), flex: 1),
+      ]),
     );
   }
 }
