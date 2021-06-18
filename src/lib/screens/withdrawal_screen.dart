@@ -1,4 +1,3 @@
-// import 'package:hex/hex.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:clipboard/clipboard.dart';
@@ -51,6 +50,8 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
   bool isNetworkHealthy = false;
   bool copied = false;
   bool loading = false;
+  // Temporary for showing QR
+  bool isQREnabled = false;
 
   FocusNode amountFocusNode;
   TextEditingController amountController;
@@ -60,6 +61,9 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
 
   FocusNode memoFocusNode;
   TextEditingController memoController;
+  String expandedHash;
+  bool initialFetched = false;
+  int page = 1;
 
   @override
   void initState() {
@@ -125,6 +129,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
 
       setState(() {
         transactions = wTxs;
+        initialFetched = true;
       });
     }
   }
@@ -210,7 +215,12 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                             ResponsiveWidget.isSmallScreen(context) ? addSecondLineSmall() : addSecondLineBig(),
                             ResponsiveWidget.isSmallScreen(context) ? addWithdrawalAmountSmall() : addWithdrawalAmountBig(),
                             // if (loading == true) addLoadingIndicator(),
-                            addWithdrawalTransactionsTable(),
+                            !initialFetched ? addLoadingIndicator() : transactions.isEmpty ? Container(
+                                margin: EdgeInsets.only(top: 20, left: 20),
+                                child: Text("No deposit transactions to show",
+                                    style: TextStyle(
+                                        color: KiraColors.white, fontSize: 18, fontWeight: FontWeight.bold)))
+                                : addTransactionsTable(),
                           ],
                         )),
                   ));
@@ -569,131 +579,136 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
             }
           },
         ),
-        Positioned(
-            top: 0,
-            right: 0,
-            child: ClipRRect(
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(50), bottomLeft: Radius.circular(50), bottomRight: Radius.circular(50)),
-              child: Container(
-                  color: Color.fromRGBO(31, 23, 76, 1),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.qr_code,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    onPressed: () async {
-                      String denomination = currentToken != null ? currentToken.denomination : "";
-                      if (withdrawalAmount == 0) {
-                        setState(() {
-                          amountError = Strings.invalidWithdrawalAmount;
-                        });
-                        return;
-                      }
 
-                      if (addressController.text == '') {
-                        setState(() {
-                          addressError = Strings.invalidWithdrawalAddress;
-                        });
-                        return;
-                      }
-
-                      setState(() {
-                        transactionResult = Strings.transactionSubmitted;
-                        loading = true;
-                      });
-
-                      final message =
-                          MsgSend(fromAddress: currentAccount.bech32Address, toAddress: addressController.text.trim(), amount: [StdCoin(denom: denomination, amount: withdrawalAmount.toString())]);
-
-                      final feeV = StdCoin(amount: feeAmount, denom: feeToken.denomination);
-                      final fee = StdFee(gas: '200000', amount: [feeV]);
-
-                      final stdTx = TransactionBuilder.buildStdTx([message], stdFee: fee, memo: memoController.text);
-
-                      final Map<String, dynamic> sortedJson = await TransactionOfflineSigner.getOnlineInformation(currentAccount, stdTx);
-                      var qrData = json.encode(sortedJson);
-                      dynamic processTranscation = await showDialog(
-                          useRootNavigator: false,
-                          context: context,
-                          barrierColor: Colors.black.withOpacity(0),
-                          barrierDismissible: false,
-                          builder: (BuildContext context) {
-                            return SignatureDialog(
-                              current: currentAccount,
-                              message: message,
-                              feeV: feeV,
-                              fee: fee,
-                              stdTx: stdTx,
-                              sortedJson: qrData,
-                            );
+        if (isQREnabled == true)
+          Positioned(
+              top: 0,
+              right: 0,
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(50), bottomLeft: Radius.circular(50), bottomRight: Radius.circular(50)),
+                child: Container(
+                    color: Color.fromRGBO(31, 23, 76, 1),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.qr_code,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onPressed: () async {
+                        String denomination = currentToken != null ? currentToken.denomination : "";
+                        if (withdrawalAmount == 0) {
+                          setState(() {
+                            amountError = Strings.invalidWithdrawalAmount;
                           });
+                          return;
+                        }
 
-                      String data = "";
-                      var dataset = [];
-                      // Decode the information
-                      for (var i = 0; i < processTranscation.length; i++) {
+                        if (addressController.text == '') {
+                          setState(() {
+                            addressError = Strings.invalidWithdrawalAddress;
+                          });
+                          return;
+                        }
+
+                        setState(() {
+                          transactionResult = Strings.transactionSubmitted;
+                          loading = true;
+                        });
+
+                        final message = MsgSend(
+                            fromAddress: currentAccount.bech32Address,
+                            toAddress: addressController.text.trim(),
+                            amount: [StdCoin(denom: denomination, amount: withdrawalAmount.toString())]);
+
+                        final feeV = StdCoin(amount: feeAmount, denom: feeToken.denomination);
+                        final fee = StdFee(gas: '200000', amount: [feeV]);
+
+                        final stdTx = TransactionBuilder.buildStdTx([message], stdFee: fee, memo: memoController.text);
+
+                        final Map<String, dynamic> sortedJson =
+                            await TransactionOfflineSigner.getOnlineInformation(currentAccount, stdTx);
+                        var qrData = json.encode(sortedJson);
+                        dynamic processTranscation = await showDialog(
+                            useRootNavigator: false,
+                            context: context,
+                            barrierColor: Colors.black.withOpacity(0),
+                            barrierDismissible: false,
+                            builder: (BuildContext context) {
+                              return SignatureDialog(
+                                current: currentAccount,
+                                message: message,
+                                feeV: feeV,
+                                fee: fee,
+                                stdTx: stdTx,
+                                sortedJson: qrData,
+                              );
+                            });
+
+                        String data = "";
+                        var dataset = [];
+                        // Decode the information
+                        for (var i = 0; i < processTranscation.length; i++) {
+                          //var base64Str = base64.decode(widget.qrData[i]);
+                          //var bytes = utf8.decode(base64Str);
+                          var decodeJson = json.decode(processTranscation[i]);
+                          dataset.add(decodeJson);
+                        }
+                        // Sort into corrrect page order
+                        dataset.sort((m1, m2) {
+                          return m1["page"].compareTo(m2["page"]);
+                        });
+
+                        // Iterate sorted information to collect the data to show
+
+                        for (var i = 0; i < dataset.length; i++) {
+                          String dataValue = utf8.decode(base64.decode(dataset[i]['data']));
+
+                          data = data + dataValue;
+                        }
+                        
                         //var base64Str = base64.decode(widget.qrData[i]);
                         //var bytes = utf8.decode(base64Str);
-                        var decodeJson = json.decode(processTranscation[i]);
-                        dataset.add(decodeJson);
-                      }
-                      // Sort into corrrect page order
-                      dataset.sort((m1, m2) {
-                        return m1["page"].compareTo(m2["page"]);
-                      });
 
-                      // Iterate sorted information to collect the data to show
+                        var signature = json.decode(data);
 
-                      for (var i = 0; i < dataset.length; i++) {
-                        String dataValue = utf8.decode(base64.decode(dataset[i]['data']));
+                        // Structures and creates the transcation structure
+                        StdPublicKey stdPublicKey =
+                            StdPublicKey(key: signature['publicKey']['value'], type: signature['publicKey']['type']);
+                        Map<String, dynamic> map = {'signature': signature['signature'], 'publicKey': stdPublicKey};
+                        final signOfflineStdTx =
+                            await TransactionOfflineSigner.signOfflineStdTx(currentAccount, stdTx, map);
+                        final result =
+                            await TransactionSender.broadcastStdTx(account: currentAccount, stdTx: signOfflineStdTx);
 
-                        data = data + dataValue;
-                      }
-
-                      //var base64Str = base64.decode(widget.qrData[i]);
-                      //var bytes = utf8.decode(base64Str);
-                      print(data);
-
-                      var signature = json.decode(data);
-
-                      // Structures and creates the transcation structure
-                      StdPublicKey stdPublicKey = StdPublicKey(key: signature['publicKey']['value'], type: signature['publicKey']['type']);
-                      Map<String, dynamic> map = {'signature': signature['signature'], 'publicKey': stdPublicKey};
-                      final signOfflineStdTx = await TransactionOfflineSigner.signOfflineStdTx(currentAccount, stdTx, map);
-                      final result = await TransactionSender.broadcastStdTx(account: currentAccount, stdTx: signOfflineStdTx);
-
-                      if (result == false) {
-                        setState(() {
-                          transactionResult = Strings.invalidRequest;
-                          transactionHash = "";
-                          loading = false;
-                        });
-                      } else if (result['height'] == "0") {
-                        // print("Tx send error: " + result['check_tx']['log']);
-                        if (result['check_tx']['log'].toString().contains("invalid")) {
+                        if (result == false) {
                           setState(() {
                             transactionResult = Strings.invalidRequest;
                             transactionHash = "";
                             loading = false;
                           });
+                        } else if (result['height'] == "0") {
+                          // print("Tx send error: " + result['check_tx']['log']);
+                          if (result['check_tx']['log'].toString().contains("invalid")) {
+                            setState(() {
+                              transactionResult = Strings.invalidRequest;
+                              transactionHash = "";
+                            });
+                          }
+                        } else {
+                          // print("Tx send successfully. Hash: 0x" + result['hash']);
+                          setState(() {
+                            transactionResult = Strings.transactionSuccess;
+                            transactionHash = result['hash'];
+                            amountController.text = "";
+                            addressController.text = "";
+                            memoController.text = "";
+                          });
+                          getNewTransaction("0x" + result['hash']);
                         }
-                      } else {
-                        // print("Tx send successfully. Hash: 0x" + result['hash']);
-
-                        setState(() {
-                          transactionResult = Strings.transactionSuccess;
-                          transactionHash = result['hash'];
-                          amountController.text = "";
-                          addressController.text = "";
-                          memoController.text = "";
-                          loading = false;
-                        });
-                        getNewTransaction("0x" + result['hash']);
-                      }
-                    },
-                  )),
-            )),
+                      },
+                    )),
+              )),
       ],
     );
   }
@@ -710,7 +725,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
         ));
   }
 
-  Widget addWithdrawalTransactionsTable() {
+  Widget addTransactionsTable() {
     return Container(
         margin: EdgeInsets.only(bottom: 50),
         child: Column(
@@ -723,7 +738,18 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
               style: TextStyle(color: KiraColors.white, fontSize: 20, fontWeight: FontWeight.w900),
             ),
             SizedBox(height: 30),
-            WithdrawalTransactionsTable(transactions: transactions)
+            TransactionsTable(
+              page: page,
+              setPage: (newPage) => this.setState(() {
+                page = newPage;
+              }),
+              isDeposit: false,
+              transactions: transactions,
+              expandedHash: expandedHash,
+              onTapRow: (hash) => this.setState(() {
+                expandedHash = hash;
+              }),
+            )
           ],
         ));
   }

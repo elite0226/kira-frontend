@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:kira_auth/models/export.dart';
+import 'package:kira_auth/models/block_transaction.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String TS_PREFIX = 'spc_ts_';
@@ -124,7 +124,6 @@ Future setInterxRPCUrl(String interxRpcUrl) async {
 }
 
 Future setTopBarStatus(bool display) async {
-
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('topBarStatus', display);
 }
@@ -135,7 +134,6 @@ Future<bool> getTopBarStatus() async {
 }
 
 Future setLoginStatus(bool isLoggedIn) async {
-
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('isLoggedIn', isLoggedIn);
 }
@@ -153,6 +151,36 @@ Future setLastFetchedTime(String key) async {
 
 String getTimestampKey(String forKey) {
   return TS_PREFIX + forKey;
+}
+
+Future setTopbarIndex(int index) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setInt('topBarIndex', index);
+}
+
+Future<int> getTopbarIndex() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getInt('topBarIndex') ?? 0;
+}
+
+Future setLastSearchedAccount(String account) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('lastSearchedAccount', account);
+}
+
+Future<String> getLastSearchedAccount() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('lastSearchedAccount') ?? "";
+}
+
+Future setTabIndex(int tabIndex) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setInt('tabIndex', tabIndex);
+}
+
+Future<int> getTabIndex() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getInt('tabIndex') ?? 0;
 }
 
 Future<bool> checkPasswordExpired() async {
@@ -176,21 +204,46 @@ Future<bool> checkPasswordExpired() async {
   return false;
 }
 
-Future<bool> checkTransactionsExists(int height) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.containsKey('tx_for_block_$height');
+enum ModelType { BLOCK, TRANSACTION, PROPOSAL }
+
+// ignore: missing_return
+String getKeyFromType(ModelType type) {
+  switch (type) {
+    case ModelType.BLOCK:
+      return 'block';
+    case ModelType.TRANSACTION:
+      return 'tx_for_block';
+    case ModelType.PROPOSAL:
+      return 'proposal';
+  }
 }
 
-Future storeTransactions(int height, List<BlockTransaction> transactions) async {
+Future<bool> checkModelExists(ModelType type, String id) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString('tx_for_block_$height', jsonEncode(transactions));
+  return prefs.containsKey('${getKeyFromType(type)}_$id');
+}
+
+Future storeModels(ModelType type, String id, String data) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('${getKeyFromType(type)}_$id', data);
+}
+
+Future<Map> getModel(ModelType type, String id) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var dataStr = prefs.getString('${getKeyFromType(type)}_$id');
+  try {
+    return jsonDecode(dataStr) as Map<String, dynamic>;
+  } catch (_) {
+    return null;
+  }
 }
 
 Future<List<BlockTransaction>> getTransactionsForHeight(int height) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   var txStrings = prefs.getString('tx_for_block_$height');
   try {
-    return jsonDecode(txStrings) as List<BlockTransaction>;
+    return (jsonDecode(txStrings) as List<dynamic>).map((e) =>
+        BlockTransaction.fromJson(jsonDecode(e.toString()) as Map<String, dynamic>)).toList();
   } catch (_) {
     return List.empty();
   }

@@ -26,6 +26,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
   @override
   void initState() {
     super.initState();
+
     getNodeStatus();
     getTransaction();
   }

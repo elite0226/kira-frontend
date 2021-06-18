@@ -18,7 +18,10 @@ class ProposalsTable extends StatefulWidget {
   final String expandedId;
   final Function onTapRow;
   final Function onTapVote;
+  final Function loadMore;
   final StreamController controller;
+  final Function setPage;
+  final int page;
   final int totalPages;
   final bool isFiltering;
 
@@ -32,6 +35,9 @@ class ProposalsTable extends StatefulWidget {
     this.controller,
     this.totalPages,
     this.isFiltering,
+    this.loadMore,
+    this.page,
+    this.setPage,
   }) : super();
 
   @override
@@ -41,7 +47,6 @@ class ProposalsTable extends StatefulWidget {
 class _ProposalsTableState extends State<ProposalsTable> {
   int voteOption;
   List<ExpandableController> controllers = List.filled(5, null);
-  int page = 1;
   int startAt;
   int endAt;
   int pageCount = 5;
@@ -57,12 +62,18 @@ class _ProposalsTableState extends State<ProposalsTable> {
 
   setPage({int newPage = 0}) {
     if (!mounted) return;
+    if (newPage > 0)
+      widget.setPage(newPage);
+    var page = newPage == 0 ? widget.page : newPage;
     this.setState(() {
-      page = newPage == 0 ? page : newPage;
       startAt = page * 5 - 5;
       endAt = startAt + pageCount;
 
-      currentProposals = widget.proposals.sublist(startAt, min(endAt, widget.proposals.length));
+      currentProposals = [];
+      if (widget.proposals.length > startAt)
+        currentProposals = widget.proposals.sublist(startAt, min(endAt, widget.proposals.length));
+      if (currentProposals.length < 5 && (widget.proposals.length / 5).ceil() < widget.totalPages)
+        widget.loadMore();
     });
     if (newPage > 0)
       refreshExpandStatus();
@@ -115,20 +126,20 @@ class _ProposalsTableState extends State<ProposalsTable> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         IconButton(
-          onPressed: page > 1 ? () => setPage(newPage: page - 1) : null,
+          onPressed: widget.page > 1 ? () => setPage(newPage: widget.page - 1) : null,
           icon: Icon(
             Icons.arrow_back_ios,
             size: 20,
-            color: page > 1 ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2),
+            color: widget.page > 1 ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2),
           ),
         ),
-        Text("$page / $totalPages", style: TextStyle(fontSize: 16, color: KiraColors.white, fontWeight: FontWeight.bold)),
+        Text("${widget.page} / $totalPages", style: TextStyle(fontSize: 16, color: KiraColors.white, fontWeight: FontWeight.bold)),
         IconButton(
-          onPressed: page < totalPages ? () => setPage(newPage: page + 1) : null,
+          onPressed: widget.page < totalPages ? () => setPage(newPage: widget.page + 1) : null,
           icon: Icon(
               Icons.arrow_forward_ios,
               size: 20,
-              color: page < totalPages ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2)
+              color: widget.page < totalPages ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2)
           ),
         ),
       ],

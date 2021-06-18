@@ -28,9 +28,12 @@ class _DepositScreenState extends State<DepositScreen> {
   List<String> networkIds = [Strings.noAvailableNetworks];
   List<Transaction> transactions = [];
   bool copied1, copied2, isNetworkHealthy = false;
+  bool initialFetched = false;
+  String expandedHash;
 
   FocusNode depositNode;
   TextEditingController depositController;
+  int page = 1;
 
   @override
   void initState() {
@@ -82,24 +85,16 @@ class _DepositScreenState extends State<DepositScreen> {
     }
   }
 
-  void getDepositTransactions() async {
+  getDepositTransactions() async {
     if (currentAccount != null) {
       List<Transaction> wTxs =
-      await transactionService.getTransactions(account: currentAccount, max: 100, isWithdrawal: false);
+        await transactionService.getTransactions(account: currentAccount, max: 100, isWithdrawal: false);
 
-      if (mounted) {
-        setState(() {
-          transactions = wTxs;
-        });
-      }
+      setState(() {
+        initialFetched = true;
+        transactions = wTxs;
+      });
     }
-  }
-
-  void getNewTransaction(hash) async {
-    Transaction tx = await transactionService.getTransaction(hash: hash);
-    setState(() {
-      transactions.add(tx);
-    });
   }
 
   void autoPress() {
@@ -137,11 +132,31 @@ class _DepositScreenState extends State<DepositScreen> {
                             addHeaderTitle(),
                             if (currentAccount != null) addGravatar(context),
                             ResponsiveWidget.isSmallScreen(context) ? addInformationSmall() : addInformationBig(),
-                            addDepositTransactionsTable(),
+                            addTableHeader(),
+                            !initialFetched ? addLoadingIndicator() : transactions.isEmpty ? Container(
+                                margin: EdgeInsets.only(top: 20, left: 20),
+                                child: Text("No deposit transactions to show",
+                                    style: TextStyle(
+                                        color: KiraColors.white, fontSize: 18, fontWeight: FontWeight.bold)))
+                            : addTransactionsTable(),
                           ],
                         ),
                       )));
             }));
+  }
+
+  Widget addLoadingIndicator() {
+    return Container(
+        alignment: Alignment.center,
+        child: Container(
+          width: 20,
+          height: 20,
+          margin: EdgeInsets.symmetric(vertical: 0, horizontal: 30),
+          padding: EdgeInsets.all(0),
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        ));
   }
 
   Widget addHeaderTitle() {
@@ -152,6 +167,47 @@ class _DepositScreenState extends State<DepositScreen> {
           textAlign: TextAlign.left,
           style: TextStyle(color: KiraColors.white, fontSize: 30, fontWeight: FontWeight.w900),
         ));
+  }
+
+  Widget addTableHeader() {
+    return Container(
+      padding: EdgeInsets.all(5),
+      margin: EdgeInsets.only(right: 40, bottom: 20),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text("Tx Hash",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text("Sender",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text("Amount",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text("Time",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text("Status",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget availableNetworks() {
@@ -352,7 +408,7 @@ class _DepositScreenState extends State<DepositScreen> {
         ));
   }
 
-  Widget addDepositTransactionsTable() {
+  Widget addTransactionsTable() {
     return Container(
         margin: EdgeInsets.only(bottom: 50),
         child: Column(
@@ -365,7 +421,18 @@ class _DepositScreenState extends State<DepositScreen> {
               style: TextStyle(color: KiraColors.white, fontSize: 20, fontWeight: FontWeight.w900),
             ),
             SizedBox(height: 20),
-            DepositTransactionsTable(transactions: transactions)
+            TransactionsTable(
+              page: page,
+              setPage: (newPage) => this.setState(() {
+                page = newPage;
+              }),
+              isDeposit: true,
+              transactions: transactions,
+              expandedHash: expandedHash,
+              onTapRow: (hash) => this.setState(() {
+                expandedHash = hash;
+              }),
+            )
           ],
         ));
   }

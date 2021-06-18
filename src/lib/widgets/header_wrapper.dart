@@ -47,7 +47,6 @@ class _HeaderWrapperState extends State<HeaderWrapper> {
     getTopBarStatus().then((display) {
       setState(() {
         this.display = display;
-        print(display);
       });
 
     });

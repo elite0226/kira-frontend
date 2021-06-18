@@ -31,6 +31,7 @@ dependencies:
   fl_chart: ^0.10.1
   date_time_format: ^1.1.1+1
   fluttertoast: ^7.1.6
+  flutter_swiper: 1.1.6
 
   # bip39: mnemonic code for generating deterministic keys
   bip39: ^1.0.3
@@ -72,7 +73,6 @@ dependencies:
   flutter_countdown_timer: ^3.0.1
   universal_ui: ^0.0.8
   expandable: ^4.0.0
-  saifu_fast_qr: ^0.0.1
   # BLAKE2b and BLAKE2s cryptographic hashing functions
 
 dev_dependencies:
