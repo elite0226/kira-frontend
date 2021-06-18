@@ -189,7 +189,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
                     Expanded(
                         flex: ResponsiveWidget.isSmallScreen(context) ? 3 : 2,
                         child: Text(
-                          "${validator.top}.",
+                          "${validator.top + 1}.",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: KiraColors.white.withOpacity(0.8),

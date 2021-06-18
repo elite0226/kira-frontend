@@ -33,6 +33,7 @@ class _DepositScreenState extends State<DepositScreen> {
 
   FocusNode depositNode;
   TextEditingController depositController;
+  int page = 1;
 
   @override
   void initState() {
@@ -421,6 +422,10 @@ class _DepositScreenState extends State<DepositScreen> {
             ),
             SizedBox(height: 20),
             TransactionsTable(
+              page: page,
+              setPage: (newPage) => this.setState(() {
+                page = newPage;
+              }),
               isDeposit: true,
               transactions: transactions,
               expandedHash: expandedHash,

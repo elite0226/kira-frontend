@@ -1,5 +1,7 @@
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:typed_data';
@@ -10,8 +12,6 @@ import 'package:kira_auth/blocs/export.dart';
 import 'package:kira_auth/models/export.dart';
 import 'package:convert/convert.dart';
 import 'package:kira_auth/config.dart';
-import 'dart:async';
-
 import 'package:qr_flutter/qr_flutter.dart';
 
 class TokenBalanceScreen extends StatefulWidget {
@@ -56,6 +56,8 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
   final List _isHovering = [false, false, false];
 
   String expandedHash;
+  String lastTxHash;
+  int page = 1;
 
   var apiUrl;
   var isSearchFinished = false;
@@ -655,6 +657,7 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
             this.tabType = i;
             sortIndex = 0;
             isAscending = true;
+            lastTxHash = '';
             setTabIndex(this.tabType);
             showSearchedAccount();
           },
@@ -699,6 +702,10 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TransactionsTable(
+            page: page,
+            setPage: (newPage) => this.setState(() {
+              page = newPage;
+            }),
             isDeposit: tabType == 0,
             transactions: tabType == 0 ? depositTrx : withdrawTrx,
             expandedHash: expandedHash,
@@ -754,6 +761,10 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TokenTable(
+              page: page,
+              setPage: (newPage) => this.setState(() {
+                page = newPage;
+              }),
               tokens: tokens,
               address: this.query,
               expandedName: expandedHash,

@@ -61,7 +61,7 @@ class NetworkService {
       validatorList.add(Validator.fromJson(validators[i]));
 
     this.validators.addAll(validatorList);
-    sortValidators();
+    // sortValidators();
     this.validators.sort((a, b) => a.top.compareTo(b.top));
   }
 

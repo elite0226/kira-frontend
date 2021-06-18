@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:kira_auth/models/transaction.dart';
@@ -9,6 +10,8 @@ class TransactionsTable extends StatefulWidget {
   final String expandedHash;
   final Function onTapRow;
   final bool isDeposit;
+  final int page;
+  final Function setPage;
 
   TransactionsTable({
     Key key,
@@ -16,6 +19,8 @@ class TransactionsTable extends StatefulWidget {
     this.expandedHash,
     this.onTapRow,
     this.isDeposit,
+    this.page,
+    this.setPage,
   }) : super();
 
   @override
@@ -23,13 +28,34 @@ class TransactionsTable extends StatefulWidget {
 }
 
 class _TransactionsTableState extends State<TransactionsTable> {
-  List<ExpandableController> controllers = List.empty();
+  List<ExpandableController> controllers = List.filled(5, null);
+  int startAt;
+  int endAt;
+  int pageCount = 5;
+  List<Transaction> currentTransactions = <Transaction>[];
 
   @override
   void initState() {
     super.initState();
 
-    controllers = List.filled(widget.transactions.length, null);
+    setPage();
+  }
+
+  setPage({int newPage = 0}) {
+    if (!mounted) return;
+    if (newPage > 0)
+      widget.setPage(newPage);
+    var page = newPage == 0 ? widget.page : newPage;
+    this.setState(() {
+      startAt = page * 5 - 5;
+      endAt = startAt + pageCount;
+
+      currentTransactions = [];
+      if (widget.transactions.length > startAt)
+        currentTransactions = widget.transactions.sublist(startAt, min(endAt, widget.transactions.length));
+    });
+    if (newPage > 0)
+      refreshExpandStatus();
   }
 
   @override
@@ -43,7 +69,8 @@ class _TransactionsTableState extends State<TransactionsTable> {
                 ),
                 child: Column(
                     children: <Widget>[
-                      ...widget.transactions
+                      addNavigateControls(),
+                      ...currentTransactions
                           .map((transaction) =>
                           ExpandableNotifier(
                             child: ScrollOnExpand(
@@ -70,10 +97,38 @@ class _TransactionsTableState extends State<TransactionsTable> {
             )));
   }
 
+  Widget addNavigateControls() {
+    var totalPages = (widget.transactions.length / 5).ceil();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        IconButton(
+          onPressed: widget.page > 1 ? () => setPage(newPage: widget.page - 1) : null,
+          icon: Icon(
+            Icons.arrow_back_ios,
+            size: 20,
+            color: widget.page > 1 ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2),
+          ),
+        ),
+        Text("${widget.page} / $totalPages", style: TextStyle(fontSize: 16, color: KiraColors.white, fontWeight: FontWeight.bold)),
+        IconButton(
+          onPressed: widget.page < totalPages ? () => setPage(newPage: widget.page + 1) : null,
+          icon: Icon(
+              Icons.arrow_forward_ios,
+              size: 20,
+              color: widget.page < totalPages ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2)
+          ),
+        ),
+      ],
+    );
+  }
+
   refreshExpandStatus({String newExpandHash = ''}) {
     widget.onTapRow(newExpandHash);
     this.setState(() {
-      widget.transactions.asMap().forEach((index, transaction) {
+      currentTransactions.asMap().forEach((index, transaction) {
         controllers[index].expanded = transaction.hash == newExpandHash;
       });
     });
@@ -83,7 +138,7 @@ class _TransactionsTableState extends State<TransactionsTable> {
     return Builder(
         builder: (context) {
           var controller = ExpandableController.of(context);
-          controllers[widget.transactions.indexOf(transaction)] = controller;
+          controllers[currentTransactions.indexOf(transaction)] = controller;
 
           return InkWell(
               onTap: () {

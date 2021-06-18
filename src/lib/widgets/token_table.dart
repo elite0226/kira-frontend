@@ -16,6 +16,8 @@ class TokenTable extends StatefulWidget {
   final Function onRefresh;
   final String address;
   final bool isLoggedIn;
+  final int page;
+  final Function setPage;
 
   TokenTable({
     Key key,
@@ -25,6 +27,8 @@ class TokenTable extends StatefulWidget {
     this.onRefresh,
     this.address,
     this.isLoggedIn,
+    this.page,
+    this.setPage,
   }) : super();
 
   @override
@@ -32,15 +36,36 @@ class TokenTable extends StatefulWidget {
 }
 
 class TokenTableState extends State<TokenTable> {
-  List<ExpandableController> controllers = List.empty();
+  List<ExpandableController> controllers = List.filled(5, null);
   TokenService tokenService = TokenService();
   bool isLoading = false;
+  int startAt;
+  int endAt;
+  int pageCount = 5;
+  List<Token> currentTokens = <Token>[];
 
   @override
   void initState() {
     super.initState();
 
-    controllers = List.filled(widget.tokens.length, null);
+    setPage();
+  }
+
+  setPage({int newPage = 0}) {
+    if (!mounted) return;
+    if (newPage > 0)
+      widget.setPage(newPage);
+    var page = newPage == 0 ? widget.page : newPage;
+    this.setState(() {
+      startAt = page * 5 - 5;
+      endAt = startAt + pageCount;
+
+      currentTokens = [];
+      if (widget.tokens.length > startAt)
+        currentTokens = widget.tokens.sublist(startAt, min(endAt, widget.tokens.length));
+    });
+    if (newPage > 0)
+      refreshExpandStatus();
   }
 
   @override
@@ -54,7 +79,8 @@ class TokenTableState extends State<TokenTable> {
                 ),
                 child: Column(
                     children: <Widget>[
-                      ...widget.tokens
+                      addNavigateControls(),
+                      ...currentTokens
                           .map((token) =>
                           ExpandableNotifier(
                             child: ScrollOnExpand(
@@ -95,10 +121,38 @@ class TokenTableState extends State<TokenTable> {
         ));
   }
 
+  Widget addNavigateControls() {
+    var totalPages = (widget.tokens.length / 5).ceil();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        IconButton(
+          onPressed: widget.page > 1 ? () => setPage(newPage: widget.page - 1) : null,
+          icon: Icon(
+            Icons.arrow_back_ios,
+            size: 20,
+            color: widget.page > 1 ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2),
+          ),
+        ),
+        Text("${widget.page} / $totalPages", style: TextStyle(fontSize: 16, color: KiraColors.white, fontWeight: FontWeight.bold)),
+        IconButton(
+          onPressed: widget.page < totalPages ? () => setPage(newPage: widget.page + 1) : null,
+          icon: Icon(
+              Icons.arrow_forward_ios,
+              size: 20,
+              color: widget.page < totalPages ? KiraColors.white : KiraColors.kGrayColor.withOpacity(0.2)
+          ),
+        ),
+      ],
+    );
+  }
+
   refreshExpandStatus({String newExpandName = ''}) {
     widget.onTapRow(newExpandName);
     this.setState(() {
-      widget.tokens.asMap().forEach((index, token) {
+      currentTokens.asMap().forEach((index, token) {
         controllers[index].expanded = token.assetName == newExpandName;
       });
     });
@@ -108,7 +162,7 @@ class TokenTableState extends State<TokenTable> {
     return Builder(
         builder: (context) {
           var controller = ExpandableController.of(context);
-          controllers[widget.tokens.indexOf(token)] = controller;
+          controllers[currentTokens.indexOf(token)] = controller;
 
           return InkWell(
               onTap: () {
@@ -166,7 +220,7 @@ class TokenTableState extends State<TokenTable> {
     final fieldWidth = ResponsiveWidget.isSmallScreen(context) ? 100.0 : 150.0;
 
     return Container(
-        padding: EdgeInsets.symmetric(horizontal: 50),
+        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 50),
         child: Column(children: [
           Row(
             children: [

@@ -63,6 +63,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
   TextEditingController memoController;
   String expandedHash;
   bool initialFetched = false;
+  int page = 1;
 
   @override
   void initState() {
@@ -224,7 +225,6 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                                     style: TextStyle(
                                         color: KiraColors.white, fontSize: 18, fontWeight: FontWeight.bold)))
                                 : addTransactionsTable(),
-                            addTransactionsTable(),
                           ],
                         )),
                   ));
@@ -763,6 +763,10 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
             ),
             SizedBox(height: 30),
             TransactionsTable(
+              page: page,
+              setPage: (newPage) => this.setState(() {
+                page = newPage;
+              }),
               isDeposit: false,
               transactions: transactions,
               expandedHash: expandedHash,
