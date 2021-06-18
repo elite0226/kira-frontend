@@ -200,7 +200,42 @@ class _BlocksScreenState extends State<BlocksScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Row(
+          ResponsiveWidget.isSmallScreen(context) ?
+            Column(
+              children: <Widget>[
+                Container(
+                    margin: EdgeInsets.only(bottom: 20),
+                    child: Text(
+                      Strings.blocks,
+                      textAlign: TextAlign.left,
+                      style: TextStyle(color: KiraColors.white, fontSize: 30, fontWeight: FontWeight.w900),
+                    )),
+                SizedBox(height: 10),
+                Row(
+                  children: <Widget>[
+                    InkWell(
+                      onTap: () {
+                        Navigator.pushReplacementNamed(context, '/network');
+                      },
+                      child: Icon(Icons.swap_horiz, color: KiraColors.white.withOpacity(0.8)),
+                    ),
+                    SizedBox(width: 10),
+                    InkWell(
+                      onTap: () {
+                        Navigator.pushReplacementNamed(context, '/network');
+                      },
+                      child: Container(
+                        child: Text(
+                          Strings.validators,
+                          textAlign: TextAlign.left,
+                          style: TextStyle(color: KiraColors.white, fontSize: 20, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ),
+                  ]
+                )
+              ],
+            ) : Row(
             children: <Widget>[
               Container(
                   margin: EdgeInsets.only(bottom: 50),
@@ -297,7 +332,7 @@ class _BlocksScreenState extends State<BlocksScreen> {
               children: [
                 Icon(Icons.perm_contact_cal, color: KiraColors.white),
                 SizedBox(width: 5),
-                Text("Proposer",
+                Text(ResponsiveWidget.isSmallScreen(context) ? "" : "Proposer",
                     style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
               ],
             )),

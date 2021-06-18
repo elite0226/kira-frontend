@@ -183,6 +183,7 @@ class _BlocksTableState extends State<BlocksTable> {
                           SizedBox(width: 5),
                           Text(block.getProposer,
                               overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
                               style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 16))
                         ])),
                     SizedBox(width: 10),

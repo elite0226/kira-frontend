@@ -18,7 +18,7 @@ class Validator {
   final int rank;
   final int streak;
   final int mischance;
-  int top;
+  final int top;
   bool isFavorite;
 
   String get getReducedAddress => address.replaceRange(10, address.length - 7, '....');
@@ -101,6 +101,7 @@ class Validator {
       commission: double.parse(data['commission'] ?? "0"),
       status: data['status'],
       rank: data['rank'] != null ? int.parse(data['rank']) : 0,
+      top: data['top'] != null ? int.parse(data['top']) : 0,
       streak: data['streak'] != null ? int.parse(data['streak']) : 0,
       mischance: data['mischance'] != null ? int.parse(data['mischance']) : 0,
     );
