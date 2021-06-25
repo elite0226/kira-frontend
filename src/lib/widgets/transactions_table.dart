@@ -28,10 +28,9 @@ class TransactionsTable extends StatefulWidget {
 }
 
 class _TransactionsTableState extends State<TransactionsTable> {
-  List<ExpandableController> controllers = List.filled(5, null);
+  List<ExpandableController> controllers = List.filled(PAGE_COUNT, null);
   int startAt;
   int endAt;
-  int pageCount = 5;
   List<Transaction> currentTransactions = <Transaction>[];
 
   @override
@@ -48,7 +47,7 @@ class _TransactionsTableState extends State<TransactionsTable> {
     var page = newPage == 0 ? widget.page : newPage;
     this.setState(() {
       startAt = page * 5 - 5;
-      endAt = startAt + pageCount;
+      endAt = startAt + PAGE_COUNT;
 
       currentTransactions = [];
       if (widget.transactions.length > startAt)
@@ -98,7 +97,7 @@ class _TransactionsTableState extends State<TransactionsTable> {
   }
 
   Widget addNavigateControls() {
-    var totalPages = (widget.transactions.length / 5).ceil();
+    var totalPages = (widget.transactions.length / PAGE_COUNT).ceil();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -146,7 +145,7 @@ class _TransactionsTableState extends State<TransactionsTable> {
                 refreshExpandStatus(newExpandHash: newExpandHash);
               },
               child: Container(
-                padding: EdgeInsets.only(top: 20, bottom: 20),
+                padding: EdgeInsets.symmetric(vertical: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [

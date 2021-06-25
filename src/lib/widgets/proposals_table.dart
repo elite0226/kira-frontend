@@ -46,10 +46,9 @@ class ProposalsTable extends StatefulWidget {
 
 class _ProposalsTableState extends State<ProposalsTable> {
   int voteOption;
-  List<ExpandableController> controllers = List.filled(5, null);
+  List<ExpandableController> controllers = List.filled(PAGE_COUNT, null);
   int startAt;
   int endAt;
-  int pageCount = 5;
   List<Proposal> currentProposals = <Proposal>[];
 
   @override
@@ -66,13 +65,13 @@ class _ProposalsTableState extends State<ProposalsTable> {
       widget.setPage(newPage);
     var page = newPage == 0 ? widget.page : newPage;
     this.setState(() {
-      startAt = page * 5 - 5;
-      endAt = startAt + pageCount;
+      startAt = page * PAGE_COUNT - PAGE_COUNT;
+      endAt = startAt + PAGE_COUNT;
 
       currentProposals = [];
       if (widget.proposals.length > startAt)
         currentProposals = widget.proposals.sublist(startAt, min(endAt, widget.proposals.length));
-      if (currentProposals.length < 5 && (widget.proposals.length / 5).ceil() < widget.totalPages)
+      if (currentProposals.length < PAGE_COUNT && (widget.proposals.length / PAGE_COUNT).ceil() < widget.totalPages)
         widget.loadMore();
     });
     if (newPage > 0)
@@ -119,7 +118,7 @@ class _ProposalsTableState extends State<ProposalsTable> {
   }
 
   Widget addNavigateControls() {
-    var totalPages = widget.isFiltering ? (widget.proposals.length / 5).ceil() : widget.totalPages;
+    var totalPages = widget.isFiltering ? (widget.proposals.length / PAGE_COUNT).ceil() : widget.totalPages;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -167,7 +166,7 @@ class _ProposalsTableState extends State<ProposalsTable> {
                 refreshExpandStatus(newExpandId: newExpandId);
               },
               child: Container(
-                  padding: EdgeInsets.only(top: 20, bottom: 20),
+                  padding: EdgeInsets.symmetric(vertical: 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [

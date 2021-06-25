@@ -13,8 +13,6 @@ class Strings {
   static const String deposit = "Deposit";
   static const String withdraw = "Withdraw";
   static const String withdrawal = "Withdrawal";
-  static const String depositTransactions = "Deposit Transactions";
-  static const String withdrawalTransactions = "Withdrawal Transactions";
   static const String faucetTokens = "Faucet Tokens";
   static const String faucet = "Faucet";
   static const String tokens = "Tokens";

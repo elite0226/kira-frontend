@@ -477,7 +477,7 @@ class _BlocksScreenState extends State<BlocksScreen> {
               setPage: (newPage) => this.setState(() {
                 page = newPage;
               }),
-              totalPages: (networkService.latestBlockHeight / 5).ceil(),
+              totalPages: (networkService.latestBlockHeight / PAGE_COUNT).ceil(),
               loadMore: () => getBlocks(false),
               blocks: blocks,
               expandedHeight: expandedHeight,

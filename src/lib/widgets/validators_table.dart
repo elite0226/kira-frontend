@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:kira_auth/models/validator.dart';
-import 'package:kira_auth/utils/colors.dart';
 import 'package:kira_auth/utils/export.dart';
 
 class ValidatorsTable extends StatefulWidget {
@@ -43,10 +42,9 @@ class ValidatorsTable extends StatefulWidget {
 }
 
 class _ValidatorsTableState extends State<ValidatorsTable> {
-  List<ExpandableController> controllers = List.filled(5, null);
+  List<ExpandableController> controllers = List.filled(PAGE_COUNT, null);
   int startAt = 0;
   int endAt;
-  int pageCount = 5;
   List<Validator> currentValidators = <Validator>[];
 
   @override
@@ -62,13 +60,13 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
       widget.setPage(newPage);
     var page = newPage == 0 ? widget.page : newPage;
     this.setState(() {
-      startAt = page * 5 - 5;
-      endAt = startAt + pageCount;
+      startAt = page * PAGE_COUNT - PAGE_COUNT;
+      endAt = startAt + PAGE_COUNT;
 
       currentValidators = [];
       if (widget.validators.length > startAt)
         currentValidators = widget.validators.sublist(startAt, min(endAt, widget.validators.length));
-      if (currentValidators.length < 5 && (widget.validators.length / 5).ceil() < widget.totalPages)
+      if (!widget.isFiltering && currentValidators.length < PAGE_COUNT && (widget.validators.length / PAGE_COUNT).ceil() < widget.totalPages)
         widget.loadMore();
     });
     if (newPage > 0)
@@ -115,7 +113,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
   }
 
   Widget addNavigateControls() {
-    var totalPages = widget.isFiltering ? (widget.validators.length / 5).ceil() : widget.totalPages;
+    var totalPages = widget.isFiltering ? (widget.validators.length / PAGE_COUNT).ceil() : widget.totalPages;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -163,7 +161,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
                 refreshExpandStatus(newExpandTop: newExpandTop);
               },
               child: Container(
-                padding: EdgeInsets.only(top: 20, bottom: 20),
+                padding: EdgeInsets.symmetric(vertical: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -172,11 +170,7 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
                         child: Container(
                             decoration: new BoxDecoration(
                               shape: BoxShape.circle,
-                              border: new Border.all(
-                                color: validator.getStatusColor().withOpacity(
-                                    0.5),
-                                width: 2,
-                              ),
+                              border: new Border.all(color: validator.getStatusColor().withOpacity(0.5), width: 2),
                             ),
                             child: InkWell(
                               child: Padding(
@@ -354,20 +348,28 @@ class _ValidatorsTableState extends State<ValidatorsTable> {
               Container(
                   width: fieldWidth,
                   child: Text(
-                      "Commission",
+                      "Streak",
                       textAlign: TextAlign.right,
                       style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 16, fontWeight: FontWeight.bold)
                   )
               ),
               SizedBox(width: 20),
+              Text("${validator.streak}", overflow: TextOverflow.ellipsis, style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 14)),
+            ],
+          ),
+          SizedBox(height: 10),
+          Row(
+            children: [
               Container(
-                  width: 200,
-                  height: 30,
-                  decoration: new BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    border: new Border.all(color: validator.getCommissionColor().withOpacity(0.6), width: 1),
-                  ),
-                  child: Padding(padding: EdgeInsets.all(3), child: Container(margin: EdgeInsets.only(right: 194.0 - 194.0 * validator.commission / 100000), height: 24, decoration: BoxDecoration(shape: BoxShape.rectangle, color: validator.getCommissionColor())))),
+                  width: fieldWidth,
+                  child: Text(
+                      "Mischance",
+                      textAlign: TextAlign.right,
+                      style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 16, fontWeight: FontWeight.bold)
+                  )
+              ),
+              SizedBox(width: 20),
+              Text("${validator.mischance}", overflow: TextOverflow.ellipsis, style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 14)),
             ],
           ),
           SizedBox(height: 10),

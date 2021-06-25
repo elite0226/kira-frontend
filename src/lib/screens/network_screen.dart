@@ -27,7 +27,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
   List<String> favoriteValidators = [];
   int expandedTop = -1;
   int sortIndex = 0;
-  bool isAscending = true;
+  bool isAscending = false;
   bool isNetworkHealthy = false;
   int page = 1;
   StreamController validatorController = StreamController.broadcast();
@@ -87,6 +87,18 @@ class _NetworkScreenState extends State<NetworkScreen> {
         temp.forEach((element) {
           element.isFavorite = isLoggedIn || favoriteValidators.contains(element.address);
         });
+        if (sortIndex == 0) {
+          temp.sort((a, b) => isAscending ? a.top.compareTo(b.top) : b.top.compareTo(a.top));
+        } else if (sortIndex == 2) {
+          temp
+              .sort((a, b) => isAscending ? a.moniker.compareTo(b.moniker) : b.moniker.compareTo(a.moniker));
+        } else if (sortIndex == 3) {
+          temp.sort((a, b) => isAscending ? a.status.compareTo(b.status) : b.status.compareTo(a.status));
+        } else if (sortIndex == 4) {
+          temp.sort((a, b) => !isAscending
+              ? a.isFavorite.toString().compareTo(b.isFavorite.toString())
+              : b.isFavorite.toString().compareTo(a.isFavorite.toString()));
+        }
         validators.clear();
         validators.addAll(temp);
 
@@ -306,10 +318,10 @@ class _NetworkScreenState extends State<NetworkScreen> {
     child: Row(
     mainAxisAlignment: MainAxisAlignment.center,
     children: sortIndex != 0 ? [
-    Text("Rank",
+    Text("Top",
     style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
     ] : [
-    Text("Rank",
+    Text("Top",
     style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
     SizedBox(width: 5),
     Icon(isAscending ? Icons.arrow_upward : Icons.arrow_downward, color: KiraColors.white),
@@ -395,7 +407,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
               setPage: (newPage) => this.setState(() {
                 page = newPage;
               }),
-              totalPages: (networkService.totalCount / 5).ceil(),
+              totalPages: (networkService.totalCount / PAGE_COUNT).ceil(),
               loadMore: () => getValidators(false),
               totalValidators: validators,
               validators: filteredValidators,
@@ -403,7 +415,6 @@ class _NetworkScreenState extends State<NetworkScreen> {
               onChangeLikes: (top) {
                 var index = validators.indexWhere((element) => element.top == top);
                 if (index >= 0) {
-
                   var currentAccount = BlocProvider.of<AccountBloc>(context).state.currentAccount;
 
                   BlocProvider.of<ValidatorBloc>(context)
@@ -422,7 +433,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
         ));
   }
 
-  refreshTableSort() {
+  void refreshTableSort() {
     this.setState(() {
       if (sortIndex == 0) {
         filteredValidators.sort((a, b) => isAscending ? a.top.compareTo(b.top) : b.top.compareTo(a.top));
