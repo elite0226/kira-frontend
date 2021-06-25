@@ -36,12 +36,11 @@ class TokenTable extends StatefulWidget {
 }
 
 class TokenTableState extends State<TokenTable> {
-  List<ExpandableController> controllers = List.filled(5, null);
+  List<ExpandableController> controllers = List.filled(PAGE_COUNT, null);
   TokenService tokenService = TokenService();
   bool isLoading = false;
   int startAt;
   int endAt;
-  int pageCount = 5;
   List<Token> currentTokens = <Token>[];
 
   @override
@@ -57,8 +56,8 @@ class TokenTableState extends State<TokenTable> {
       widget.setPage(newPage);
     var page = newPage == 0 ? widget.page : newPage;
     this.setState(() {
-      startAt = page * 5 - 5;
-      endAt = startAt + pageCount;
+      startAt = page * PAGE_COUNT - PAGE_COUNT;
+      endAt = startAt + PAGE_COUNT;
 
       currentTokens = [];
       if (widget.tokens.length > startAt)
@@ -122,7 +121,7 @@ class TokenTableState extends State<TokenTable> {
   }
 
   Widget addNavigateControls() {
-    var totalPages = (widget.tokens.length / 5).ceil();
+    var totalPages = (widget.tokens.length / PAGE_COUNT).ceil();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -170,7 +169,7 @@ class TokenTableState extends State<TokenTable> {
                 refreshExpandStatus(newExpandName: newExpandName);
               },
               child: Container(
-                padding: EdgeInsets.only(top: 20, bottom: 20),
+                padding: EdgeInsets.symmetric(vertical: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [

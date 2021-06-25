@@ -31,6 +31,7 @@ class _HamburgerDrawerState extends State<HamburgerDrawer> {
   void initState() {
     super.initState();
 
+    statusService.getNodeStatus();
     getLoginStatus().then((loggedIn) => this.setState(() {
       isLoggedIn = loggedIn;
     }));
@@ -53,7 +54,7 @@ class _HamburgerDrawerState extends State<HamburgerDrawer> {
               case 0: // account
                 Navigator.pushReplacementNamed(context, '/account' + (!isLoggedIn ? '?rpc=${statusService.rpcUrl}' : ''));
                 break;
-              case 1: // Depost
+              case 1: // Deposit
                 Navigator.pushReplacementNamed(context, '/deposit');
                 break;
               case 2: // Withdrawal

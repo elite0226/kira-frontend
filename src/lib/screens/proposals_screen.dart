@@ -288,7 +288,7 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
               onTapRow: (id) => this.setState(() {
                 expandedId = id;
               }),
-              totalPages: (proposalService.totalCount / 5).ceil(),
+              totalPages: (proposalService.totalCount / PAGE_COUNT).ceil(),
               loadMore: () => getProposals(false),
               controller: proposalController,
               onTapVote: (proposalId, option) => sendProposal(proposalId, option),

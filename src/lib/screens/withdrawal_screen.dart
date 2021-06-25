@@ -732,12 +732,6 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              Strings.withdrawalTransactions,
-              textAlign: TextAlign.start,
-              style: TextStyle(color: KiraColors.white, fontSize: 20, fontWeight: FontWeight.w900),
-            ),
-            SizedBox(height: 30),
             TransactionsTable(
               page: page,
               setPage: (newPage) => this.setState(() {

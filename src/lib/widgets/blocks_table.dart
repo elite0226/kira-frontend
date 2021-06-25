@@ -37,10 +37,9 @@ class BlocksTable extends StatefulWidget {
 }
 
 class _BlocksTableState extends State<BlocksTable> {
-  List<ExpandableController> controllers = List.filled(5, null);
+  List<ExpandableController> controllers = List.filled(PAGE_COUNT, null);
   int startAt;
   int endAt;
-  int pageCount = 5;
   List<Block> currentBlocks = <Block>[];
 
   @override
@@ -57,13 +56,13 @@ class _BlocksTableState extends State<BlocksTable> {
       widget.setPage(newPage);
     var page = newPage == 0 ? widget.page : newPage;
     this.setState(() {
-      startAt = page * 5 - 5;
-      endAt = startAt + pageCount;
+      startAt = page * PAGE_COUNT - PAGE_COUNT;
+      endAt = startAt + PAGE_COUNT;
 
       currentBlocks = [];
       if (widget.blocks.length > startAt)
         currentBlocks = widget.blocks.sublist(startAt, min(endAt, widget.blocks.length));
-      if (currentBlocks.length < 5 && (widget.blocks.length / 5).ceil() < widget.totalPages)
+      if (currentBlocks.length < PAGE_COUNT && (widget.blocks.length / PAGE_COUNT).ceil() < widget.totalPages)
         widget.loadMore();
     });
     if (newPage > 0)
@@ -158,7 +157,7 @@ class _BlocksTableState extends State<BlocksTable> {
                 refreshExpandStatus(newExpandHeight: newExpandHeight);
               },
               child: Container(
-                padding: EdgeInsets.only(top: 20, bottom: 20, left: 20),
+                padding: EdgeInsets.only(top: 10, bottom: 10, left: 20),
                 child: Row(
                   children: [
                     Expanded(
@@ -183,6 +182,7 @@ class _BlocksTableState extends State<BlocksTable> {
                           SizedBox(width: 5),
                           Text(block.getProposer,
                               overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
                               style: TextStyle(color: KiraColors.white.withOpacity(0.8), fontSize: 16))
                         ])),
                     SizedBox(width: 10),

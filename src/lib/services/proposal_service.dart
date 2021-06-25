@@ -35,7 +35,7 @@ class ProposalService {
         await getProposalsCount();
         lastOffset = totalCount;
       }
-      offset = max(lastOffset - 20, 0);
+      offset = max(lastOffset - PAGE_COUNT, 0);
       limit = lastOffset - offset;
       lastOffset = offset;
     }

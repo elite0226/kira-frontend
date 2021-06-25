@@ -83,7 +83,7 @@ Future<List> loadInterxURL() async {
 
       if (isSucceed == false && ((startsWithHttp && !noHttp) || noHttp)) {
         rpcUrl = 'http://' + rpcUrl;
-        // rpcUrl = 'https://cors-anywhere.kira.network/' + rpcUrl;
+        rpcUrl = 'https://cors-anywhere.kira.network/' + rpcUrl;
       }
     }
 

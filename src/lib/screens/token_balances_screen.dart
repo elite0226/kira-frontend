@@ -34,7 +34,7 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
   List<String> faucetTokens = [];
   bool isNetworkHealthy = false;
   int sortIndex = 0;
-  bool isAscending = true;
+  bool isAscending = false;
   bool isLoggedIn = false;
   TextEditingController searchController;
   Account explorerAccount;
@@ -100,6 +100,7 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
     if(this.query.isNotEmpty) {
       String rpc = this.apiUrl[0].toString().replaceAll("/api", "");
       rpc = rpc.replaceAll("http://", "");
+      rpc = rpc.replaceAll("https://", "");
       Navigator.pushReplacementNamed(context, '/account?addr=$query&type=$tabIndex&rpc=$rpc');
     }
   }
@@ -718,8 +719,8 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
   }
 
   Widget addTableHeader() {
-    List<String> titles = tabType < 2 ? ['Tx Hash', ['Sender', 'Recipient'][tabType], 'Amount', 'Time', 'Status'] : ['Token Name', 'Balance'];
-    List<int> flexes = tabType < 2 ? [2, 2, 1, 1, 1] : [1, 1];
+    List<String> titles = (!isLoggedIn && tabType < 2) ? ['Tx Hash', ['Sender', 'Recipient'][tabType], 'Amount', 'Time', 'Status'] : ['Token Name', 'Balance'];
+    List<int> flexes = (!isLoggedIn && tabType < 2) ? [2, 2, 1, 1, 1] : [1, 1];
 
     return Container(
       padding: EdgeInsets.all(5),
@@ -739,7 +740,7 @@ class _TokenBalanceScreenState extends State<TokenBalanceScreen> {
               refreshTableSort();
             }),
             child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: sortIndex != index ? [
                 Text(title, style: TextStyle(color: KiraColors.kGrayColor, fontSize: 16, fontWeight: FontWeight.bold)),
               ] : [

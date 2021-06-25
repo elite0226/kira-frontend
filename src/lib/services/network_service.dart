@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:kira_auth/models/export.dart';
 import 'package:kira_auth/config.dart';
 import 'package:kira_auth/services/export.dart';
-import 'package:kira_auth/utils/cache.dart';
+import 'package:kira_auth/utils/export.dart';
 
 class NetworkService {
   List<Validator> validators = [];
@@ -45,7 +45,7 @@ class NetworkService {
         await getValidatorsCount();
         lastOffset = totalCount;
       }
-      offset = max(lastOffset - 20, 0);
+      offset = max(lastOffset - PAGE_COUNT, 0);
       limit = lastOffset - offset;
       lastOffset = offset;
     }
@@ -61,33 +61,6 @@ class NetworkService {
       validatorList.add(Validator.fromJson(validators[i]));
 
     this.validators.addAll(validatorList);
-    // sortValidators();
-    this.validators.sort((a, b) => a.top.compareTo(b.top));
-  }
-
-  sortValidators() {
-    validators.sort((a, b) {
-      if (a.getStatus() != b.getStatus()) {
-        if (b.getStatus() == ValidatorStatus.ACTIVE)
-          return 1;
-        if (a.getStatus() == ValidatorStatus.ACTIVE)
-          return -1;
-        return a.getStatus().toString().compareTo(b.getStatus().toString());
-      }
-      if (a.rank != b.rank) {
-        if (a.rank == 0)
-          return 1;
-        if (b.rank == 0)
-          return -1;
-        return a.rank.compareTo(b.rank);
-      }
-      if (a.streak != b.streak)
-        return a.streak.compareTo(b.streak);
-
-      return -1;
-    });
-    var top = 1;
-    validators.forEach((element) { element.top = top ++; });
   }
 
   Future<Validator> searchValidator(String proposer) async {
@@ -129,7 +102,7 @@ class NetworkService {
     } else {
       if (lastBlockOffset == 0)
         lastBlockOffset = latestBlockHeight = int.parse(statusService.syncInfo.latestBlockHeight);
-      offset = max(lastBlockOffset - 20, 0);
+      offset = max(lastBlockOffset - PAGE_COUNT, 0);
       limit = lastBlockOffset - offset;
       lastBlockOffset = offset;
     }
